@@ -5,11 +5,11 @@
     <h1 class="page-heading">
         <i class="fas fa-users"></i> Users
     </h1>
-
+    
     <!-- Search Form -->
     <form action="{{ route('users.index') }}" method="GET" class="mb-3 d-flex">
         <div class="input-group">
-            <input type="text" name="search" class="form-control" placeholder="Search users..." value="{{ request()->input('search') }}">
+            <input type="text" name="search" class="form-control" placeholder="Search users..." value="{{ htmlspecialchars(request()->input('search')) }}">
             <button class="btn btn-outline-secondary" type="submit">
                 <i class="fas fa-search"></i> Search
             </button>
@@ -106,35 +106,35 @@
         </div>
     </div>
 
-    <!-- Purpose Modal -->
-    <div class="modal fade" id="purposeModal" tabindex="-1" aria-labelledby="purposeModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="purposeModalLabel">Select Purpose</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="purposeForm" action="{{ route('users.assets.issue', $user->id) }}" method="GET">
-                        @csrf
-                        <div class="mb-3">
-                            <label for="purpose" class="form-label">Purpose</label>
-                            <select name="purpose" id="purpose" class="form-select" required>
-                                <option value="">Select Purpose</option>
-                                <option value="event">Event</option>
-                                <option value="daily_work">Daily Work</option>
-                            </select>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" form="purposeForm" class="btn btn-primary">Proceed</button>
-                </div>
+<!-- Purpose Modal -->
+<div class="modal fade" id="purposeModal" tabindex="-1" aria-labelledby="purposeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="purposeModalLabel">Select Purpose</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="purposeForm" action="#" method="GET">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="purpose" class="form-label">Purpose</label>
+                        <select name="purpose" id="purpose" class="form-select" required>
+                            <option value="">Select Purpose</option>
+                            <option value="event">Event</option>
+                            <option value="daily_work">Daily Work</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="purposeForm" class="btn btn-primary">Proceed</button>
             </div>
         </div>
-        </div>
+    </div>
 </div>
+
 @endsection
 
 @section('scripts')
@@ -188,23 +188,41 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-//Purpose modal
 document.addEventListener('DOMContentLoaded', function() {
-    // Get references to the modal and the form inside it
-    const purposeModal = document.getElementById('purposeModal');
     const purposeForm = document.getElementById('purposeForm');
 
-    // Add event listener for the "Issue Asset" buttons
     document.querySelectorAll('.issue-asset-btn').forEach(button => {
         button.addEventListener('click', function() {
-            // Get the user ID from the data attribute
             const userId = this.getAttribute('data-user-id');
-
-            // Update the form action dynamically
-            purposeForm.setAttribute('action', `/users/${userId}/assets/issue`);
+            if (userId) {
+                purposeForm.setAttribute('action', `/users/${userId}/assets/issue`);
+            } else {
+                purposeForm.setAttribute('action', '#');
+            }
         });
     });
 });
+
+
+//Sanitize input
+document.addEventListener('DOMContentLoaded', function () {
+    const searchForm = document.querySelector('form[action="{{ route('users.index') }}"]');
+    const searchInput = searchForm.querySelector('input[name="search"]');
+
+    searchForm.addEventListener('submit', function (event) {
+        const userInput = searchInput.value;
+
+        // Create a temporary element to leverage the browser's HTML entity encoding
+        const tempElement = document.createElement('div');
+        tempElement.textContent = userInput;  // This will automatically encode special characters to HTML entities
+        const encodedInput = tempElement.innerHTML;  // Get the HTML-encoded content
+
+        // Update the input field with the encoded value
+        searchInput.value = encodedInput;
+    });
+});
+
+
 
 </script>
 @endsection

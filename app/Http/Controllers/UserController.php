@@ -22,30 +22,41 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $query = User::with('company'); // Ensure eager loading
-
+    
         // Restrict results if the logged-in user is a manager
         if (Auth::user()->role === 'manager') {
             $query->where('company_id', Auth::user()->company_id);
         }
-        
-        if ($request->has('search')) {
-            $search = $request->input('search');
-            $query->where('id', 'like', "%{$search}%")
-                  ->orWhere('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('role', 'like', "%{$search}%")
-                  ->orWhere('position', 'like', "%{$search}%")
-                  ->orWhere('status', 'like', "%{$search}%")
-                  ->orWhere('contact_number', 'like', "%{$search}%")
-                  ->orWhereHas('company', function($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%");
-                  });
+    
+        // Validate the search input
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:255', 
+                'not_regex:/<\s*script.*?>.*?<\s*\/\s*script\s*>/i'], // Disallow script tags
+        ]);
+    
+        // Apply the search filter if input is valid
+        if ($request->filled('search')) {
+            $search = htmlspecialchars($validated['search']); // Sanitize input
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('role', 'like', "%{$search}%")
+                    ->orWhere('position', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%")
+                    ->orWhere('contact_number', 'like', "%{$search}%")
+                    ->orWhereHas('company', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+            });
         }
     
-        $users = $query->get(); // Get the result with eager-loaded 'company' relationship
+        // Get the result
+        $users = $query->get();
     
         return view('users.index', compact('users'));
     }
+    
     
     public function create()
     {

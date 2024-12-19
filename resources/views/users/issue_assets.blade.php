@@ -18,6 +18,17 @@
                         <i class="fas fa-box"></i> Available Assets
                     </div>
                     <div class="card-body">
+
+                        <!-- Select2 searchable dropdown -->
+                        <select id="searchableAssets" class="form-select select2 mt-3">
+                            <option></option> <!-- Empty option for placeholder -->
+                            @foreach($availableAssets as $asset)
+                                <option value="{{ $asset->asset_tag }}">
+                                    {{ $asset->asset_tag }} - {{ $asset->deviceType->name ?? 'N/A' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <!-- List of available assets -->
                         <select id="availableAssets" class="form-select" size="10" multiple>
                             @foreach($availableAssets as $asset)
                                 <option value="{{ $asset->asset_tag }}">
@@ -120,6 +131,60 @@
             document.querySelectorAll('select[multiple]').forEach(select => {
                 Array.from(select.options).forEach(option => option.selected = true);
             });
+        });
+    });
+
+
+    //Select2
+    $(document).ready(function() {
+        // Initialize Select2 for the searchable dropdown (as an additional feature)
+        $('#searchableAssets').select2({
+            placeholder: "Search and select an asset",
+            allowClear: true,
+            width: '100%'  // Make the select2 dropdown width responsive
+        });
+
+        // Original asset assignment function for multi-select
+        document.getElementById('assignAsset').addEventListener('click', function() {
+            moveSelected('availableAssets', 'userAssets');
+        });
+
+        document.getElementById('removeAsset').addEventListener('click', function() {
+            moveSelected('userAssets', 'availableAssets');
+        });
+
+        // Move selected options between available and user's assets
+        function moveSelected(fromId, toId) {
+            var from = document.getElementById(fromId);
+            var to = document.getElementById(toId);
+            var selectedOptions = Array.from(from.selectedOptions);
+
+            selectedOptions.forEach(function(option) {
+                from.removeChild(option);
+                to.appendChild(option);
+            });
+        }
+
+        // Ensure all options in userAssets are selected before submitting the form
+        document.getElementById('assetAssignmentForm').addEventListener('submit', function() {
+            var userAssets = document.getElementById('userAssets');
+            for (var i = 0; i < userAssets.options.length; i++) {
+                userAssets.options[i].selected = true;
+            }
+        });
+
+        // Listen for changes in searchable Select2 dropdown
+        $('#searchableAssets').on('change', function() {
+            let selectedAsset = $(this).val();
+
+            if (selectedAsset) {
+                // Move selected asset to userAssets
+                $('#availableAssets option[value="' + selectedAsset + '"]').prop('selected', true);
+                moveSelected('availableAssets', 'userAssets');
+
+                // Clear selection from Select2 after moving
+                $(this).val(null).trigger('change');
+            }
         });
     });
 </script>

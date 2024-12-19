@@ -9,7 +9,7 @@
     <!-- Search Form -->
     <form action="{{ route('assets.index') }}" method="GET" class="mb-3 d-flex">
         <div class="input-group">
-            <input type="text" name="search" class="form-control" placeholder="Search assets..." value="{{ request()->input('search') }}">
+            <input type="text" name="search" class="form-control" placeholder="Search assets..." value="{{ htmlspecialchars(request()->input('search')) }}">
             <button class="btn btn-outline-secondary" type="submit">
                 <i class="fas fa-search"></i> Search
             </button>
@@ -71,4 +71,23 @@
         </table>
     </div>
 </div>
+<script>
+    //Sanitize input
+document.addEventListener('DOMContentLoaded', function () {
+    const searchForm = document.querySelector('form[action="{{ route('assets.index') }}"]');
+    const searchInput = searchForm.querySelector('input[name="search"]');
+
+    searchForm.addEventListener('submit', function (event) {
+        const userInput = searchInput.value;
+
+        // Create a temporary element to leverage the browser's HTML entity encoding
+        const tempElement = document.createElement('div');
+        tempElement.textContent = userInput;  // This will automatically encode special characters to HTML entities
+        const encodedInput = tempElement.innerHTML;  // Get the HTML-encoded content
+
+        // Update the input field with the encoded value
+        searchInput.value = encodedInput;
+    });
+});
+</script>
 @endsection

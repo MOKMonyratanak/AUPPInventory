@@ -22,10 +22,16 @@ class AssetController extends Controller
             // Limit results to only the assets that belong to the manager's company
             $query->where('company_id', auth()->user()->company_id);
         }
-    
+        
+        // Validate the search input
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:255', 
+                'not_regex:/<\s*script.*?>.*?<\s*\/\s*script\s*>/i'], // Disallow script tags
+        ]);
+
         // Optional search functionality
-        if ($request->has('search')) {
-            $search = $request->input('search');
+        if ($request->filled('search')) {
+            $search = htmlspecialchars($validated['search']); 
             $query->where(function($q) use ($search) {
                 $q->where('asset_tag', 'like', "%{$search}%")
                   ->orWhere('status', 'like', "%{$search}%")
