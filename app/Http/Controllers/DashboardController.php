@@ -57,7 +57,7 @@ class DashboardController extends Controller
         // Paginate recent activities
         $recentActivities = ActivityLog::latest()
             ->with(['performedBy', 'affectedUser'])
-            ->paginate(10); // 10 items per page
+            ->paginate(20); // 10 items per page
     
         return view('dashboard', compact(
             'totalAssets',
