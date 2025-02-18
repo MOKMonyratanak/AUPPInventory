@@ -66,7 +66,7 @@ Password: 00000000
 
 ## Known Issues
 - Webpage reload with each click.
-- 
+
 ## Acknowledgements
 
 This project uses the following open-source libraries and frameworks:
