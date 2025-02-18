@@ -1,69 +1,83 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# Iussing Asset System
 
-## About Laravel
+This is project is developed to assist the process of issuing assets to staff and faculty at AUPP.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Manage Users and assets
+- Manage the issuance and returns of assets
+- Print out and email a list of assets issued to a particular Users
+- Review recents activities
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Requirements
 
-## Learning Laravel
+- Php 8.2 or higher
+- Composer
+- Mysql
+- Node.js
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Installation
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+1. Clone this repository:
+```
+git clone https://github.com/MOKMonyratanak/AUPPInventory.git
+cd AUPPInventory
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+2. Create a `.env` file in the project root. Copy the sample from `.env.example` and adjust it according to your specific setup.
 
-## Laravel Sponsors
+3. Install dependencies
+```
+composer install
+npm install
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+4. Generate an encryption key
+```
+php artisan key:generate
+```
 
-### Premium Partners
+5. Run migration to create database
+```
+php artisan migrate
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+6. For local development, run:
+```
+npm run dev
+php artisan serve
+```
 
-## Contributing
+7. For production, run:
+```
+npm run build
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+8. Login with the following default admin account:
+```
+Email: admin@gmail.com
+Password: 00000000
+```
 
-## Code of Conduct
+9. Create your required company and position in the setting.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+10. Change the default email, password, and make adjustment to the admin profile accordingly.
 
-## Security Vulnerabilities
+## Known Issues
+- Webpage reload with each click.
+- 
+## Acknowledgements
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+This project uses the following open-source libraries and frameworks:
 
-## License
+- [Laravel Framework](https://laravel.com/): A powerful and elegant PHP framework that powers this application.
+- [Bootstrap](https://getbootstrap.com/): A popular CSS framework for building responsive and modern web designs.
+- [FontAwesome](https://fontawesome.com/): A toolkit for vector icons and social logos.
+- [jQuery](https://jquery.com/): A fast, small, and feature-rich JavaScript library.
+- [Select2](https://select2.org/): A jQuery-based replacement for select boxes.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-"# AUPPInventory" 
-"# AUPPInventory" 
-"# IAS" 
+### Special Thanks
+
+- To my supervisor for providing invaluable guidance and support throughout the development of this project.
+- The Laravel community for their continuous support and updates.
