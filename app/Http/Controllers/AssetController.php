@@ -189,7 +189,7 @@ class AssetController extends Controller
         $asset = Asset::where('asset_tag', $assetTag)->firstOrFail();
 
         // Pre-fill the data for the clone, excluding specific fields
-        $cloneData = $asset->replicate(['asset_tag', 'user_id', 'checked_out_by', 'status', 'note'])->toArray();
+        $cloneData = $asset->replicate(['asset_tag', 'user_id', 'checked_out_by', 'status', 'serial_no'])->toArray();
 
         // Redirect to the create form with the pre-filled data
         $users = User::all();
