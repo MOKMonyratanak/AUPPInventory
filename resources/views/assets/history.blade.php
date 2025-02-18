@@ -16,34 +16,36 @@
         </div>
     </div>
 
-    <h3 class="mt-4">Activity Logs</h3>
-    @if($activityLogs->isEmpty())
-        <p>No activity logs found for this asset.</p>
+    <h3 class="mt-4 mb-2 fw-bold">Activity Logs</h3>
+    @if($history->isEmpty())
+        <p>No history found for this asset.</p>
     @else
     <div class="table-scroll">
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th class="col-name"><i class="fas fa-calendar-alt"></i> Date</th>
-                    <th class="col-name"><i class="fas fa-tasks"></i> Action</th>
-                    <th class="col-name"><i class="fas fa-user-check"></i> Performed By</th>
-                    <th class="col-name"><i class="fas fa-user"></i> User</th>
+                    <th class="col-name"><i class="fas fa-calendar-alt"></i> Date & Time </th>
+                    <th class="col-name"><i class="fas fa-user-check"></i> Admin </th>
+                    <th class="col-name"><i class="fas fa-tasks"></i> Action </th>
+                    <th class="col-name"><i class="fas fa-user"></i> User </th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($activityLogs as $log)
+                @foreach($history as $log)
                 <tr>
                     <td>{{ $log->created_at->format('Y-m-d H:i:s') }}</td>
-                    <td>{{ $log->action }}</td>
                     <td>{{ $log->performedBy->name ?? 'N/A' }}</td>
+                    <td>{{ $log->action }}</td>
                     <td>{{ $log->affectedUser->name ?? 'N/A' }}</td>
                 </tr>
                 @endforeach
             </tbody>
         </table>        
     </div>
-
-    
+    <!-- Pagination Links -->
+    <div class="mt-3">
+        {{ $history->links() }}
+    </div>
     @endif
 
     <a href="{{ route('assets.index') }}" class="btn btn-secondary mt-3">

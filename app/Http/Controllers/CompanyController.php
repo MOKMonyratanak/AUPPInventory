@@ -2,67 +2,79 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCompanyRequest;
+use App\Http\Requests\UpdateCompanyRequest;
 use App\Models\Company;
 use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
 
 class CompanyController extends Controller
 {
-    // List all companies
     public function index()
     {
+        if (auth()->user()->role !== 'admin') {
+            return redirect()->route('users.index')->with('error', 'Unauthorized access.');
+        }
+
         $companies = Company::all();
         return view('companies.index', compact('companies'));
     }
 
-    // Show the form for creating a new company
     public function create()
     {
+        if (auth()->user()->role !== 'admin') {
+            return redirect()->route('users.index')->with('error', 'Unauthorized access.');
+        }
+
         return view('companies.create');
     }
 
-    // Store a newly created company in the database
-    public function store(Request $request)
+    public function store(StoreCompanyRequest $request)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
-
-        Company::create($validatedData);
-
+        Company::create($request->validated());
         return redirect()->route('companies.index')->with('success', 'Company created successfully.');
     }
 
-    // Show a specific company
     public function show(Company $company)
     {
+        if (auth()->user()->role !== 'admin') {
+            return redirect()->route('users.index')->with('error', 'Unauthorized access.');
+        }
+
         return view('companies.show', compact('company'));
     }
 
-    // Show the form for editing an existing company
     public function edit(Company $company)
     {
+        if (auth()->user()->role !== 'admin') {
+            return redirect()->route('users.index')->with('error', 'Unauthorized access.');
+        }
+
         return view('companies.edit', compact('company'));
     }
 
-    // Update a specific company in the database
-    public function update(Request $request, Company $company)
+    public function update(UpdateCompanyRequest $request, Company $company)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
-
-        $company->update($validatedData);
-
+        $company->update($request->validated());
         return redirect()->route('companies.index')->with('success', 'Company updated successfully.');
     }
 
-    // Delete a specific company
     public function destroy(Company $company)
     {
-        $company->delete();
-
-        return redirect()->route('companies.index')->with('success', 'Company deleted successfully.');
+        // Check if the authenticated user is an admin
+        if (auth()->user()->role !== 'admin') {
+            return redirect()->route('companies.index')->with('error', 'Unauthorized access. Only admins can delete companies.');
+        }
+    
+        try {
+            $company->delete();
+            return redirect()->route('companies.index')->with('success', 'Company deleted successfully.');
+        } catch (QueryException $e) {
+            if ($e->getCode() == 23000) { // Foreign key constraint violation
+                return redirect()->route('companies.index')->with('error', 'Cannot delete this company because it is linked to existing users or assets.');
+            }
+    
+            return redirect()->route('companies.index')->with('error', 'An error occurred while deleting the company.');
+        }
     }
 }

@@ -2,81 +2,63 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreDeviceTypeRequest;
+use App\Http\Requests\UpdateDeviceTypeRequest;
 use App\Models\DeviceType;
 use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
 
 class DeviceTypeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $deviceTypes = DeviceType::all();
         return view('device_types.index', compact('deviceTypes'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('device_types.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreDeviceTypeRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
-
-        DeviceType::create($request->all());
-
+        DeviceType::create($request->validated());
         return redirect()->route('device_types.index')->with('success', 'Device type created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(DeviceType $deviceType)
     {
         return view('device_types.show', compact('deviceType'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(DeviceType $deviceType)
     {
         return view('device_types.edit', compact('deviceType'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, DeviceType $deviceType)
+    public function update(UpdateDeviceTypeRequest $request, DeviceType $deviceType)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
-
-        $deviceType->update($request->all());
-
+        $deviceType->update($request->validated());
         return redirect()->route('device_types.index')->with('success', 'Device type updated successfully.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(DeviceType $deviceType)
     {
-        $deviceType->delete();
-
-        return redirect()->route('device_types.index')->with('success', 'Device type deleted successfully.');
+        // Check if the authenticated user is an admin
+        if (auth()->user()->role !== 'admin') {
+            return redirect()->route('device_types.index')->with('error', 'Unauthorized access. Only admins can delete device types.');
+        }
+    
+        try {
+            $deviceType->delete();
+            return redirect()->route('device_types.index')->with('success', 'Device type deleted successfully.');
+        } catch (QueryException $e) {
+            if ($e->getCode() == 23000) { // Foreign key constraint violation
+                return redirect()->route('device_types.index')->with('error', 'Cannot delete this device type because it is linked to existing assets.');
+            }
+    
+            return redirect()->route('device_types.index')->with('error', 'An error occurred while deleting the device type.');
+        }
     }
 }

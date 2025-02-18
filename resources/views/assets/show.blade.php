@@ -13,7 +13,7 @@
             </h5>
             <p class="card-text">
                 <strong><i class="fas fa-desktop"></i> Device Type:</strong> {{ $asset->deviceType ? $asset->deviceType->name : 'N/A' }}
-            </p> <!-- Using the deviceType relationship -->
+            </p> 
             <p class="card-text">
                 <strong><i class="fas fa-industry"></i> Brand:</strong> {{ $asset->brand ? $asset->brand->name : 'N/A' }}
             </p>            
@@ -31,10 +31,10 @@
             </p>
             <p class="card-text">
                 <strong><i class="fas fa-user"></i> Assigned User:</strong> {{ $asset->user ? $asset->user->name : 'N/A' }}
-            </p> <!-- Using the user relationship -->
+            </p>
             <p class="card-text">
                 <strong><i class="fas fa-user-check"></i> Checked Out By:</strong> {{ $asset->checkedOutBy ? $asset->checkedOutBy->name : 'N/A' }}
-            </p> <!-- Using the checkedOutBy relationship -->
+            </p>
             <p class="card-text">
                 <strong><i class="fas fa-building"></i> Company:</strong> {{ $asset->company ? $asset->company->name : 'N/A' }}
             </p>
@@ -66,17 +66,18 @@
                 <a href="{{ route('assets.history', $asset->asset_tag) }}" class="btn btn-secondary me-2">
                     <i class="fas fa-history"></i> History
                 </a>
-
-            
-                <!-- Delete Button -->
-                <form action="{{ route('assets.destroy', $asset->asset_tag) }}" method="POST" style="display:inline-block;">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash-alt"></i> Delete
-                    </button>
-                </form>
-            
+                
+                <!-- Delete Button with Double Confirmation -->
+                @if(auth()->user() && auth()->user()->role === 'admin')
+                    <form action="{{ route('assets.destroy', $asset->asset_tag) }}" method="POST" style="display:inline-block;">
+                        @csrf
+                        @method('DELETE')
+                        <button data-delete-btn type="submit" class="btn btn-danger" data-status="{{ $asset->status }}">
+                            <i class="fas fa-trash-alt"></i> Delete
+                        </button>
+                    </form>
+                @endif
+                
                 <!-- Back Button -->
                 <a href="{{ route('assets.index') }}" class="btn btn-primary ms-2">
                     <i class="fas fa-arrow-left"></i> Back to Assets
@@ -86,4 +87,9 @@
         </div>
     </div>
 </div>
+<script>
+    window.assetRoutes = {
+        index: @json(route('assets.index'))
+    };
+</script>
 @endsection

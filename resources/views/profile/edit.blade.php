@@ -2,23 +2,9 @@
 
 @section('content')
 <div class="container">
-    <h1 class="page-heading">Edit Profile</h1>
-
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    @if (session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
-    @endif
+    <h1 class="page-heading">
+        <i class="fas fa-user-cog"></i> Edit Profile
+    </h1>
 
     <form action="{{ route('profile.update') }}" method="POST">
         @csrf
@@ -47,19 +33,35 @@
         @endif
 
         <!-- Only show the Company Name field if the user is not a manager -->
-        @if ($user->role !== 'manager')
+        @if ($user->role === 'admin')
             <div class="mb-3">
-                <label for="company_name" class="form-label">Company Name</label>
-                <select id="company_name" name="company_name" class="form-control" required>
-                    <option value="AUPP University" {{ old('company_name', $user->company_name) == 'AUPP University' ? 'selected' : '' }}>AUPP University</option>
-                    <option value="AUPP HS" {{ old('company_name', $user->company_name) == 'AUPP HS' ? 'selected' : '' }}>AUPP HS</option>
-                </select>
+                <label for="company_id" class="form-label">Company</label>
+                <select name="company_id" class="form-control" required>
+                    <option value="" disabled>Select a company</option>
+                    @foreach($companies as $company)
+                        <option value="{{ $company->id }}" {{ old('company_id', $user->company_id) == $company->id ? 'selected' : '' }}>
+                            {{ $company->name }}
+                        </option>
+                    @endforeach
+                </select>                
             </div>
         @endif
 
-        <div class="mb-3">
+        {{-- <div class="mb-3">
             <label for="position" class="form-label">Position</label>
             <input type="text" class="form-control" id="position" name="position" value="{{ old('position', $user->position) }}" required>
+        </div> --}}
+
+        <div class="mb-3">
+            <label for="position_id" class="form-label">Position</label>
+            <select name="position_id" class="form-control" required>
+                <option value="" disabled>Select a Position</option>
+                @foreach($positions as $position)
+                    <option value="{{ $position->id }}" {{ old('position_id', $user->position_id) == $position->id ? 'selected' : '' }}>
+                        {{ $position->name }}
+                    </option>
+                @endforeach
+            </select>                
         </div>
 
         <div class="mb-3">

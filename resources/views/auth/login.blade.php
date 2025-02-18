@@ -1,8 +1,8 @@
 <x-guest-layout>
     <!-- Title for the Login Page -->
     <div class="max-w-md mx-auto mt-4 p-6 bg-white dark:bg-gray-800 rounded-lg">
-        <h1 class="text-center text-3xl font-extrabold text-gray-900 dark:text-white mb-8">
-            {{ __('Asset Issuance') }}
+        <h1 class="text-center text-2xl font-extrabold text-gray-900 dark:text-white mb-8">
+            {{ __('Asset Issuing System (IAS)') }}
         </h1>
 
         <!-- Session Status -->
@@ -30,7 +30,7 @@
             <!-- Remember Me -->
             <div class="flex items-center justify-between mb-6">
                 <label for="remember_me" class="inline-flex items-center">
-                    <input id="remember_me" type="checkbox" 
+                    <input id="remember_me" type="checkbox" style="height: 17px !important; margin: 0 !important;"
                            class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600" 
                            name="remember">
                     <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember Me') }}</span>

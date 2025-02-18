@@ -74,4 +74,10 @@ class Asset extends Model
         return $this->hasMany(ActivityLog::class, 'asset_id');
     }
 
+    public function latestIssueLog()
+    {
+        return $this->hasOne(ActivityLog::class, 'asset_tag', 'asset_tag')
+            ->where('action', 'issue')
+            ->latest();
+    }
 }

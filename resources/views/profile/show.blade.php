@@ -2,13 +2,9 @@
 
 @section('content')
 <div class="container">
-    <h1 class="page-heading">Profile</h1>
-
-    @if (session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
-    @endif
+    <h1 class="page-heading">
+        <i class="fas fa-user-cog"></i> Profile
+    </h1>
 
     <div class="card mb-4">
         <div class="card-body">
@@ -39,7 +35,7 @@
             <!-- Position -->
             <div class="mb-3">
                 <strong>Position:</strong>
-                <p>{{ $user->position }}</p>
+                <p>{{ $user->position->name }}</p>
             </div>
 
             <!-- Contact Number -->

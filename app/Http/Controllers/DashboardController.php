@@ -13,11 +13,13 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // Existing logic for total and issued assets
+        if (auth()->user()->role !== 'admin') {
+            return redirect()->route('users.index')->with('error', 'Unauthorized access.');
+        }
+
+        // Total, issued, and remaining assets
         $totalAssets = Asset::count();
         $issuedAssets = Asset::where('status', 'issued')->count();
-    
-        // New logic for remaining assets
         $remainingAssets = $totalAssets - $issuedAssets;
     
         $deviceData = Asset::selectRaw(
@@ -38,12 +40,10 @@ class DashboardController extends Controller
             $remainingDeviceCounts[] = $data->total_count - $data->issued_count;
         }
     
-        // New logic: Fetch brand distribution
-        $brandData = Asset::selectRaw(
-            'brand_id, COUNT(*) as brand_count'
-        )
+        // Fetch brand distribution
+        $brandData = Asset::selectRaw('brand_id, COUNT(*) as brand_count')
             ->groupBy('brand_id')
-            ->with('brand') // Eager load the brand relationship
+            ->with('brand')
             ->get();
     
         $brandLabels = [];
@@ -54,26 +54,24 @@ class DashboardController extends Controller
             $brandCounts[] = $data->brand_count;
         }
     
-        // Existing activity filter
-        $activityFilter = $request->input('filter', 'last_10');
+        // Paginate recent activities
         $recentActivities = ActivityLog::latest()
-            ->with(['user', 'affectedUser'])
-            ->when($activityFilter === 'last_10', fn($query) => $query->take(10))
-            ->get();
+            ->with(['performedBy', 'affectedUser'])
+            ->paginate(10); // 10 items per page
     
         return view('dashboard', compact(
             'totalAssets',
             'issuedAssets',
-            'remainingAssets', // Pass remaining assets to the view
+            'remainingAssets',
             'deviceTypeLabels',
             'issuedDeviceCounts',
             'remainingDeviceCounts',
             'recentActivities',
-            'activityFilter',
             'brandLabels',
             'brandCounts'
         ));
     }
+    
     
     
     

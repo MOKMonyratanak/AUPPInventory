@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateAssetRequest;
+use App\Http\Requests\StoreAssetRequest;
 use App\Models\Asset;
 use App\Models\User;
 use App\Models\Company;
@@ -18,7 +20,7 @@ class AssetController extends Controller
         $query = Asset::with(['user', 'checkedOutBy', 'company', 'deviceType', 'brand']);
         
         // Check if the logged-in user is a 'manager'
-        if (auth()->user()->role === 'manager') {
+        if (auth()->user()->role !== 'admin') {
             // Limit results to only the assets that belong to the manager's company
             $query->where('company_id', auth()->user()->company_id);
         }
@@ -57,91 +59,49 @@ class AssetController extends Controller
             });
         }
     
-        $assets = $query->get();
+        // Paginate results (10 items per page)
+        $assets = $query->paginate(20);
     
         return view('assets.index', compact('assets'));
     }
-    
 
-// Show form for creating a new asset
-// AssetController.php
+    public function create()
+    {
+        $user = auth()->user();
+        $companies = Company::all();
 
-public function create()
-{
-    $user = auth()->user();
-    $companies = Company::all(); // Default: for non-managers
+        // If the user is a manager, restrict to their own company
+        if ($user->role !== 'admin') {
+            $companies = Company::where('id', $user->company_id)->get();
+        }
 
-    // If the user is a manager, restrict to their own company
-    if ($user->role === 'manager') {
-        $companies = Company::where('id', $user->company_id)->get();
+        $users = User::all();
+        $deviceTypes = DeviceType::all();
+        $brands = Brand::all();
+
+        return view('assets.create', compact('users', 'companies', 'deviceTypes', 'brands'));
     }
 
-    $users = User::all();  // Fetch all users
-    $deviceTypes = DeviceType::all(); // Fetch all device types
-    $brands = Brand::all(); // Fetch all brands
-
-    return view('assets.create', compact('users', 'companies', 'deviceTypes', 'brands'));
-}
-
-
-// Store the new asset in the database
-// AssetController.php
-
-public function store(Request $request)
-{
-    $user = auth()->user();
-
-    // Additional validation: if manager, restrict to their own company
-    $request->validate([
-        'asset_tag' => 'required|string|max:255|unique:assets,asset_tag',
-        'device_type_id' => 'required|integer|exists:device_types,id',
-        'brand_id' => 'nullable|integer|exists:brands,id',
-        'model' => 'nullable|string|max:255',
-        'serial_no' => 'nullable|string|max:255',
-        'company_id' => [
-            'required',
-            'integer',
-            'exists:companies,id',
-            function ($attribute, $value, $fail) use ($user) {
-                if ($user->role === 'manager' && $value != $user->company_id) {
-                    $fail('You can only create assets under your own company.');
-                }
-            }
-        ],
-        'condition' => 'required|string|max:255',
-        'status' => 'required|string|in:available,issued',
-        'user_id' => 'nullable|integer|exists:users,id',
-        'checked_out_by' => 'nullable|integer|exists:users,id',
-        'purpose' => 'nullable|string|max:255',
-        'note' => 'nullable|string|max:500',
-    ]);
-
-    // Proceed with asset creation
-    Asset::create([
-        'asset_tag' => $request->asset_tag,
-        'device_type_id' => $request->device_type_id,
-        'brand_id' => $request->brand_id,
-        'model' => $request->model,
-        'serial_no' => $request->serial_no,
-        'company_id' => $request->company_id,
-        'condition' => $request->condition,
-        'status' => $request->status,
-        'user_id' => $request->user_id,
-        'checked_out_by' => $request->checked_out_by,
-        'purpose' => $request->purpose,
-        'note' => $request->note,
-    ]);
-
-    return redirect()->route('assets.index')->with('success', 'Asset created successfully.');
-}
-
-
+    public function store(StoreAssetRequest $request)
+    {
+        $user = auth()->user();
     
+        $asset = Asset::create($request->validated());
+    
+        ActivityLog::create([
+            'admin_id' => $user->id,
+            'user_id' => null,
+            'action' => 'create asset',
+            'asset_tag' => $request->asset_tag,
+        ]);
+    
+        return redirect()->route('assets.index')->with('success', 'Asset created successfully.');
+    }
 
     public function show(Asset $asset)
     {
         // Check if the logged-in user is a manager and ensure they are only viewing assets from their company
-        if (auth()->user()->role === 'manager' && $asset->company_id !== auth()->user()->company_id) {
+        if (auth()->user()->role !== 'admin' && $asset->company_id !== auth()->user()->company_id) {
             abort(403, 'Unauthorized action.');
         }
     
@@ -155,87 +115,74 @@ public function store(Request $request)
         $asset = Asset::findOrFail($id);
 
         // Restrict managers to only edit assets within their own company
-        if ($user->role === 'manager' && $asset->company_id !== $user->company_id) {
+        if ($user->role !== 'admin' && $asset->company_id !== $user->company_id) {
             abort(403, 'You are not authorized to edit assets outside your company.');
         }
 
-        $deviceTypes = DeviceType::all(); // Fetch all device types
-        $brands = Brand::all(); // Fetch all brands
-        $companies = Company::all(); // Default: for non-managers
+        $deviceTypes = DeviceType::all();
+        $brands = Brand::all();
+        $companies = Company::all();
 
         // If the user is a manager, restrict to their own company
-        if ($user->role === 'manager') {
+        if ($user->role !== 'admin') {
             $companies = Company::where('id', $user->company_id)->get();
         }
 
         return view('assets.edit', compact('asset', 'deviceTypes', 'brands', 'companies'));
     }
 
-    public function update(Request $request, Asset $asset)
+    public function update(UpdateAssetRequest $request, Asset $asset)
     {
         $user = auth()->user();
     
         // Restrict managers to only update assets within their own company
-        if ($user->role === 'manager' && $asset->company_id !== $user->company_id) {
+        if ($user->role !== 'admin' && $asset->company_id !== $user->company_id) {
             return redirect()->route('assets.index')->withErrors('You are not authorized to edit this asset.');
         }
     
-        // Validate the request data
-        $request->validate([
-            'asset_tag' => 'required|string|max:255|unique:assets,asset_tag,' . $asset->getKey() . ',asset_tag', // Unique validation, excluding the current asset
-            'device_type_id' => 'required|integer|exists:device_types,id',     // Ensure device_type_id exists in device_types table
-            'brand_id' => 'nullable|integer|exists:brands,id',                // Ensure brand_id exists in brands table
-            'model' => 'nullable|string|max:255',                             // Optional model field
-            'serial_no' => 'nullable|string|max:255',                         // Optional serial number field
-            'company_id' => [
-                'required',
-                'integer',
-                'exists:companies,id',
-                function ($attribute, $value, $fail) use ($user) {
-                    // Managers can only assign assets to their own company
-                    if ($user->role === 'manager' && $value != $user->company_id) {
-                        $fail('You can only assign assets to your own company.');
-                    }
-                }
-            ],
-            'condition' => 'required|string|max:255',                         // Required condition field
-            'status' => 'required|string|in:available,issued',                // Status must be either 'available' or 'issued'
-            'user_id' => 'nullable|integer|exists:users,id',                  // Optional user_id, ensure it exists in users table
-            'checked_out_by' => 'nullable|integer|exists:users,id',           // Optional checked_out_by field, ensure it exists in users table
-            'purpose' => 'nullable|string|max:255',
-            'note' => 'nullable|string|max:500',
-        ]);
-    
-        // Update the asset with the validated data
-        $asset->update([
+    // Update the asset with validated data
+    $asset->update($request->validated());
+
+        ActivityLog::create([
+            'admin_id' => auth()->id(),
+            'user_id' => null,
+            'action' => 'update asset',
             'asset_tag' => $request->asset_tag,
-            'device_type_id' => $request->device_type_id,
-            'brand_id' => $request->brand_id,  // Update the brand_id
-            'model' => $request->model,
-            'serial_no' => $request->serial_no,
-            'company_id' => $request->company_id,
-            'condition' => $request->condition,
-            'status' => $request->status,
-            'user_id' => $request->user_id,
-            'checked_out_by' => $request->checked_out_by,
-            'purpose' => $request->purpose,
-            'note' => $request->note,
         ]);
+        
     
         return redirect()->route('assets.index')->with('success', 'Asset updated successfully.');
     }
-    
 
-    
-
-    // Delete an asset from the database
     public function destroy(Asset $asset)
     {
+        // Check if the authenticated user is an admin
+        if (auth()->user()->role !== 'admin') {
+            return redirect()->route('assets.index')->with('error', 'Unauthorized access. Only admins can delete assets.');
+        }
+
+        // Check if the asset has ever been issued
+        $wasIssued = ActivityLog::where('asset_tag', $asset->asset_tag)
+        ->where('action', 'issue')
+        ->exists();
+
+        if ($wasIssued) {
+            return redirect()->route('assets.index')->with('error', 'This asset cannot be deleted as it has been issued before. You might want to mark it defective instead if it\'s no longer usable.');
+        }
+
+        $assetTag = $asset->asset_tag;
         $asset->delete();
+
+        ActivityLog::create([
+            'admin_id' => auth()->id(),
+            'user_id' => null, // Not applicable for assets
+            'action' => 'delete asset',
+            'asset_tag' => $assetTag, // Log the deleted asset's tag
+        ]);
+
         return redirect()->route('assets.index')->with('success', 'Asset deleted successfully.');
     }
 
-    // Clone an existing asset
     public function clone($assetTag)
     {
         // Find the asset to clone
@@ -258,14 +205,12 @@ public function store(Request $request)
         $asset = Asset::where('asset_tag', $assetTag)->firstOrFail();
     
         // Retrieve activity logs based on the asset_tag, eager-loading related users
-        $activityLogs = ActivityLog::with(['performedBy', 'affectedUser'])
+        $history = ActivityLog::with(['performedBy', 'affectedUser'])
             ->where('asset_tag', $assetTag)
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10);
     
         // Return the history view with the asset and its logs
-        return view('assets.history', compact('asset', 'activityLogs'));
+        return view('assets.history', compact('asset', 'history'));
     }
-    
-    
 }

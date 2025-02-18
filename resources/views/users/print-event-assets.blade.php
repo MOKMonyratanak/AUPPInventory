@@ -3,71 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css'])
     <title>Print Asset Details</title>
-    <style>
-            @page {
-        size: A4;
-    }
-    body {
-        font-family: Arial, sans-serif;
-        font: size 10px;
-        line-height: 1.3;
-    }
-    .bold {
-        font-weight: bold;
-    }
-    .underline {
-        text-decoration: underline;
-    }
-    .center {
-        text-align: center;
-    }
-    .right {
-        text-align: right;
-    }
-    .left {
-        text-align: left;
-    }
-    .section-break {
-        margin-top: 20px;
-    }
-    .table-borderless {
-        border-collapse: collapse;
-        width: 100%;
-    }
-    .table-borderless td {
-        padding: 5px;
-    }
-    hr {
-        border: none;
-        border-top: 1px solid black;
-        margin: 20px 0;
-    }
-    .signature-line {
-        margin-top: 40px;
-    }
-    /* Custom styles for the Asset Information table */
-    td:first-child, th:first-child {
-    width: 28%;
-    }
-    td:nth-child(2), th:nth-child(2) {
-        width: 25%;
-    }
-    td:nth-child(3), th:nth-child(3) {
-        width: 25%;
-    }
-    td:last-child, th:last-child {
-    width: 22%;
-    }
-    /* Custom styles for the User Information table */
-    .user-info-table td:first-child {
-        width: 50%;
-    }
-    .user-info-table td:last-child {
-        width: 50%; 
-    }
-    </style>
 </head>
 <body>
 
@@ -76,7 +13,7 @@
     </div>
 
     <div class="section-break center bold">AMERICAN UNIVERSITY OF PHNOM PENH</div>
-    <div class="section-break center underline">ACCESSORIES CHECK-OUT CHECK-IN FORM</div>
+    <div class="section-break center underline">ISSUED EVENT DEVICES FORM</div>
 
     <br>
 
@@ -86,7 +23,7 @@
     <table class="table-borderless user-info-table">
         <tr>
             <td><span class="bold">Issued to:&nbsp;</span> <span class="underline">&nbsp;&nbsp;{{ $user->name }}&nbsp;&nbsp;</span></td>
-            <td><span class="bold">Position:&nbsp;</span> <span class="underline">&nbsp;&nbsp;{{ $user->position }}&nbsp;&nbsp;</span></td>
+            <td><span class="bold">Position:&nbsp;</span> <span class="underline">&nbsp;&nbsp;{{ $user->position->name }}&nbsp;&nbsp;</span></td>
         </tr>
         <tr>
             <td><span class="bold">Email:&nbsp;</span> <span class="underline">&nbsp;&nbsp;{{ $user->email }}&nbsp;&nbsp;</span></td>
@@ -98,26 +35,26 @@
         </tr>
     </table>
 
-    <hr>
+    <br>
 
     <div class="underline bold">Asset Information</div>
-
+    <br>
     @if($userAssets->isEmpty())
         <p>No assets assigned.</p>
     @else
         <table class="table-borderless">
             <tr>
-                <th class="left">Asset Tag</th>
-                <th class="left">Device Type</th>
-                <th class="left">Brand</th>
-                <th class="left">Model</th>
+                <th class="center">Asset Tag</th>
+                <th class="center">Device Type</th>
+                <th class="center">Brand</th>
+                <th class="center">Model</th>
             </tr>
             @foreach($userAssets as $key => $asset)
                 <tr>
                     <td>{{ $key + 1 }}. &nbsp;&nbsp;{{ $asset->asset_tag }}&nbsp;&nbsp;</td>
                     <td> &nbsp;&nbsp;{{ $asset->deviceType->name }}&nbsp;&nbsp;</&nbsp;&nbsp;></td>
-                    <td> &nbsp;&nbsp;{{ $asset->model ? $asset->model : "N/A" }}&nbsp;&nbsp;</td>
                     <td> &nbsp;&nbsp;{{ $asset->brand->name }}&nbsp;&nbsp;</td>
+                    <td> &nbsp;&nbsp;{{ $asset->model ? $asset->model : "N/A" }}&nbsp;&nbsp;</td>
                 </tr>
             @endforeach
         </table>
@@ -126,7 +63,7 @@
     <!-- Add Blank Rows for Additional Devices -->
     <table class="table-borderless">
         @php
-            $remainingRows = 7 - $userAssets->count();  // Calculate the number of blank rows to add
+            $remainingRows = 10 - $userAssets->count();  // Calculate the number of blank rows to add
         @endphp
 
         @for ($i = 0; $i < $remainingRows; $i++)
@@ -139,7 +76,7 @@
         @endfor
     </table>
 
-    <hr>
+    <br>
 
     <div class="underline bold">Agreement</div>
 
@@ -164,18 +101,18 @@
                 <td>Date: <span class="underline">&nbsp;&nbsp;{{ $todayDate }}&nbsp;&nbsp;</span></td>
             </tr>
             <tr>
-                <td>Signature: ________________________</td>
-                <td>Signature: ________________________</td>
+                <td>Signature: ______________________</td>
+                <td>Signature: ______________________</td>
             </tr>
         </table>
     </div>
 
-
     <!-- Auto-trigger print -->
     <script>
-        window.onload = function() {
-            window.print();
-        };
+        document.addEventListener("DOMContentLoaded", function () {
+                window.print();
+        });
     </script>
+
 </body>
 </html>

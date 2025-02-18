@@ -6,17 +6,6 @@
         <i class="fas fa-edit"></i> Edit Asset
     </h1>
 
-    <!-- Error Alert Section -->
-    @if($errors->any())
-        <div class="alert alert-danger">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li> <!-- Display validation errors including duplicate asset_tag -->
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
     <form action="{{ route('assets.update', $asset->asset_tag) }}" method="POST">
         @csrf
         @method('PUT')
@@ -84,11 +73,11 @@
                 <i class="fas fa-clipboard-check"></i> Condition
             </label>
             <select name="condition" class="form-control" required>
-                <option value="new" {{ $asset->status == 'new' ? 'selected' : '' }}>New</option>
-                <option value="moderate" {{ $asset->status == 'moderate' ? 'selected' : '' }}>Moderate</option>
-                <option value="poor" {{ $asset->status == 'poor' ? 'selected' : '' }}>Poor</option>
-                <option value="defective" {{ $asset->status == 'defective' ? 'selected' : '' }}>Defective</option>
-                <option value="for repair" {{ $asset->status == 'for repair' ? 'selected' : '' }}>For Repair</option>
+                <option value="new" {{ old('condition', $asset->condition) == 'new' ? 'selected' : '' }}>New</option>
+                <option value="moderate" {{ old('condition', $asset->condition) == 'moderate' ? 'selected' : '' }}>Moderate</option>
+                <option value="poor" {{ old('condition', $asset->condition) == 'poor' ? 'selected' : '' }}>Poor</option>
+                <option value="defective" {{ old('condition', $asset->condition) == 'defective' ? 'selected' : '' }}>Defective</option>
+                <option value="for repair" {{ old('condition', $asset->condition) == 'for repair' ? 'selected' : '' }}>For Repair</option>
             </select>
         </div>
 
@@ -98,8 +87,8 @@
                 <i class="fas fa-info-circle"></i> Status
             </label>
             <select name="status" class="form-control" required>
-                <option value="available" {{ $asset->status == 'available' ? 'selected' : '' }}>Available</option>
-                <option value="issued" {{ $asset->status == 'issued' ? 'selected' : '' }}>Issued</option>
+                <option value="available" {{ old('status', $asset->status) == 'available' ? 'selected' : '' }}>Available</option>
+                <option value="issued" {{ old('status', $asset->status) == 'issued' ? 'selected' : '' }}>Issued</option>
             </select>
         </div>
 
@@ -108,7 +97,7 @@
             <label for="company_id">
                 <i class="fas fa-building"></i> Company
             </label>
-            @if(auth()->user()->role === 'manager')
+            @if(auth()->user()->role !== 'admin')
                 <!-- Managers can only see and edit their own company, so show a fixed input -->
                 <input type="hidden" name="company_id" value="{{ auth()->user()->company_id }}">
                 <input type="text" class="form-control" value="{{ auth()->user()->company->name }}" disabled>
@@ -140,14 +129,4 @@
         </button>
     </form>
 </div>
-
-<script>
-    $(document).ready(function() {
-        $('.select2').select2({
-            placeholder: "Select a Device Type",
-            allowClear: true
-        });
-    });
-</script>
-
 @endsection

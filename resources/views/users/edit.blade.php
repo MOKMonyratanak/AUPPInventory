@@ -1,21 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+<div id="user-edit-container" class="container">
     <h1 class="page-heading">
         <i class="fas fa-user-edit"></i> Edit User
     </h1>
-
-    <!-- Alert Section for Showing Errors -->
-    @if($errors->any())
-        <div class="alert alert-danger">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li> <!-- List all validation errors -->
-                @endforeach
-            </ul>
-        </div>
-    @endif
 
     <form action="{{ route('users.update', $user->id) }}" method="POST">
         @csrf
@@ -86,7 +75,7 @@
             <label for="company_id">
                 <i class="fas fa-building"></i> Company
             </label>
-            @if(auth()->user()->role === 'manager')
+            @if(auth()->user()->role !== 'admin')
                 <!-- Only show the manager's company, disable the dropdown -->
                 <input type="hidden" name="company_id" value="{{ auth()->user()->company_id }}">
                 <input type="text" class="form-control" value="{{ auth()->user()->company->name }}" disabled>
@@ -104,11 +93,26 @@
         </div>
 
         <!-- Position -->
-        <div class="form-group mb-3">
+        {{-- <div class="form-group mb-3">
             <label for="position">
                 <i class="fas fa-briefcase"></i> Position
             </label>
             <input type="text" name="position" class="form-control" value="{{ old('position', $user->position) }}" required>
+        </div> --}}
+
+        <!-- Position(new) -->
+        <div class="form-group mb-3">
+            <label for="position">
+                <i class="fas fa-briefcase"></i> Position
+            </label>
+            <select name="position_id" id="position_id" class="form-control select2" required>
+                <option value="" disabled>Select a Position</option>
+                @foreach($positions as $position)
+                    <option value="{{ $position->id }}" {{ old('position_id', $user->position_id) == $position->id ? 'selected' : '' }}>
+                        {{ $position->name }}
+                    </option>
+                @endforeach
+            </select>
         </div>
 
         <!-- Contact Number -->
@@ -116,7 +120,7 @@
             <label for="contact_number">
                 <i class="fas fa-phone"></i> Contact Number
             </label>
-            <input type="text" name="contact_number" class="form-control" value="{{ old('contact_number', $user->contact_number) }}" required>
+            <input type="text" name="contact_number" class="form-control" value="{{ old('contact_number', $user->contact_number) }}" required pattern="0\d{8,9}">
         </div>
 
         <!-- Status -->
@@ -137,7 +141,7 @@
     </form>
 </div>
 
-<script>
+{{-- <script>
     function togglePasswordFields() {
         const role = document.getElementById('role').value;
         const passwordFields = document.getElementById('passwordFields');
@@ -155,5 +159,8 @@
 
     // Call the function on page load to ensure correct behavior
     document.addEventListener('DOMContentLoaded', togglePasswordFields);
+</script> --}}
+<script>
+    window.assetRoutes = {};
 </script>
 @endsection

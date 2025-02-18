@@ -6,17 +6,6 @@
         <i class="fas fa-box"></i> Add New Asset
     </h1>
 
-    <!-- Error Alert Section -->
-    @if($errors->any())
-        <div class="alert alert-danger">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li> <!-- Display all validation errors, including duplicate asset_tag -->
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
     <form action="{{ route('assets.store') }}" method="POST">
         @csrf
 
@@ -27,7 +16,7 @@
             </label>
             <input type="text" name="asset_tag" class="form-control" value="{{ old('asset_tag', $asset['asset_tag'] ?? '') }}" required>
             @error('asset_tag')
-                <div class="text-danger">{{ $message }}</div> <!-- Show validation error for asset_tag -->
+                <div class="text-danger">{{ $message }}</div>
             @enderror
         </div>
 
@@ -51,7 +40,7 @@
             <label for="brand">
                 <i class="fas fa-industry"></i> Brand
             </label>
-            <select name="brand_id" id="brand_id" class="form-control select2" required>
+            <select name="brand_id" id="brand_id" class="select2 form-control" required>
                 <option value="" disabled selected>Select a Brand</option>
                 @foreach($brands as $brand)
                     <option value="{{ $brand->id }}" {{ old('brand_id', $asset['brand_id'] ?? '') == $brand->id ? 'selected' : '' }}>
@@ -107,7 +96,7 @@
             <label for="company_id">
                 <i class="fas fa-building"></i> Company
             </label>
-            @if(auth()->user()->role === 'manager')
+            @if(auth()->user()->role !== 'admin')
                 <!-- Only show the manager's company, disable the dropdown -->
                 <input type="hidden" name="company_id" value="{{ auth()->user()->company_id }}">
                 <input type="text" class="form-control" value="{{ auth()->user()->company->name }}" disabled>
@@ -138,16 +127,5 @@
         </button>
     </form>
 </div>
-
-<script>
-    $(document).ready(function() {
-        // Initialize Select2
-        $('#device_type_id').select2({
-            placeholder: "Select a Device Type",
-            allowClear: true,
-            minimumResultsForSearch: 0
-        });
-    });
-</script>
 
 @endsection

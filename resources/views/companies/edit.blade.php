@@ -5,7 +5,7 @@
     <h1 class="page-heading">
         <i class="fas fa-edit"></i> Edit Company
     </h1>
-
+    
     <form action="{{ route('companies.update', $company->id) }}" method="POST">
         @csrf
         @method('PUT')

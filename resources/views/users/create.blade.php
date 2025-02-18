@@ -1,21 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+<div id="user-create-container" class="container">
     <h1 class="page-heading">
         <i class="fas fa-user-plus"></i> Create New User
     </h1>
-
-    <!-- General Error Alert Section for Showing All Errors -->
-    @if($errors->any())
-        <div class="alert alert-danger">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li> <!-- Display each validation error -->
-                @endforeach
-            </ul>
-        </div>
-    @endif
 
     <form action="{{ route('users.store') }}" method="POST">
         @csrf
@@ -52,14 +41,18 @@
             <label for="role">
                 <i class="fas fa-user-tag"></i> Role
             </label>
-            <select name="role" id="role" class="form-control" required onchange="togglePasswordFields()">
-                <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>User</option>
-                @if(auth()->user()->role !== 'manager')
-                    <!-- Only show manager and admin options for non-manager users -->
+            @if(auth()->user()->role === 'admin')
+                <!-- Only show the dropdown for Admin users -->
+                <select name="role" id="role" class="form-control" required onchange="togglePasswordFields()">
+                    <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>User</option>
                     <option value="manager" {{ old('role') == 'manager' ? 'selected' : '' }}>Manager</option>
                     <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                @endif
-            </select>
+                </select>
+            @else
+                <!-- Automatically assign "user" role for non-admins (hidden input) -->
+                <input type="hidden" name="role" value="user">
+                <input type="text" class="form-control" value="User" disabled>
+            @endif
         </div>
 
         <!-- Password Fields (Only show for non-user roles) -->
@@ -101,12 +94,19 @@
             @endif
         </div>
 
-        <!-- Position -->
+        <!-- Position (New) -->
         <div class="form-group mb-3">
-            <label for="position">
+            <label for="position_id">
                 <i class="fas fa-briefcase"></i> Position
             </label>
-            <input type="text" name="position" class="form-control" value="{{ old('position') }}" required>
+            <select name="position_id" id="position_id" class="form-control select2" required>
+                <option value="" disabled selected>Select a Position</option>
+                @foreach($positions as $position)
+                    <option value="{{ $position->id }}" {{ old('position_id', $user['position_id'] ?? '') == $position->id ? 'selected' : '' }}>
+                        {{ $position->name }}
+                    </option>
+                @endforeach
+            </select>
         </div>
 
         <!-- Contact Number -->
@@ -114,7 +114,7 @@
             <label for="contact_number">
                 <i class="fas fa-phone"></i> Contact Number
             </label>
-            <input type="text" name="contact_number" class="form-control" value="{{ old('contact_number') }}" required>
+            <input type="text" name="contact_number" class="form-control" value="{{ old('contact_number') }}" required pattern="0\d{8,9}">
         </div>
 
         <!-- Status -->
@@ -134,20 +134,7 @@
         </button>
     </form>
 </div>
-
 <script>
-    function togglePasswordFields() {
-        const role = document.getElementById('role').value;
-        const passwordFields = document.getElementById('passwordFields');
-
-        if (role === 'user') {
-            passwordFields.style.display = 'none';  // Hide password fields
-        } else {
-            passwordFields.style.display = 'block'; // Show password fields
-        }
-    }
-
-    // Call the function on page load to ensure correct behavior
-    document.addEventListener('DOMContentLoaded', togglePasswordFields);
+    window.assetRoutes = {};
 </script>
 @endsection

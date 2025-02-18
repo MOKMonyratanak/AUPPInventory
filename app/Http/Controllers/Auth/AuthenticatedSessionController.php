@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers\Auth;
-
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
@@ -26,9 +25,27 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        // Check if the user has the 'user' role
+        if (Auth::user()->role == 'user' or Auth::user()->status == 'resigned') {
+            // Log out the user immediately
+            Auth::logout();
+
+            // Invalidate the session to prevent session fixation
+            $request->session()->invalidate();
+
+            // Regenerate the CSRF token
+            $request->session()->regenerateToken();
+
+            // Redirect with an error message
+            return redirect()->route('login')
+                ->withErrors(['email' => 'You are not allowed to log in.']);
+        }
+
+        // Regenerate the session to prevent session fixation attacks
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Redirect the user to their intended destination (or dashboard if no intended destination)
+        return redirect()->intended(route('users.index', absolute: false));
     }
 
     /**

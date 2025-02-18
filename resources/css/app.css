@@ -21,17 +21,22 @@ body {
 }
 
 
-
-
 /* Print Styles */
 @media print {
+    .content{
+        page-break-after: always;
+    }
     @page {
         size: A4;
+        margin: 15mm;
+        @bottom-right {
+            content: 'page ' counter(page) ' of ' counter(pages);
+        }
     }
     body {
         font-family: Arial, sans-serif;
         font: size 10px;
-        line-height: 1.3;
+        line-height: 1.2;
     }
     .bold {
         font-weight: bold;
@@ -86,41 +91,68 @@ body {
     .user-info-table td:last-child {
         width: 50%; 
     }
+
 }
 
 /* Index page design */
-.col-id {
-    width: 10%;
+.table-container {
+    width: 100%;
+    overflow-x: auto; /* Enable horizontal scrolling */
+    position: relative;
 }
-.col-name {
-    width: 30%;
-}
-.col-description {
-    width: 40%;
-}
-.col-actions {
-    width: 20%;
-}
-.col-status {
-    width: 15%;
-}
-.table-scroll {
-    overflow-x: auto; /* Allow horizontal scrolling */
-    white-space: nowrap; /* Prevent content wrapping */
+
+.table-wrapper {
+    width: 100%; /* Full container width */
+    overflow-x: auto; /* Allow horizontal scrolling for wide tables */
 }
 
 .table {
-    width: auto !important; /* Use the natural width of the table based on content */
+    width: 100%; /* Stretch table to fit container */
+    table-layout: fixed; /* Enforce fixed column widths */
+    border-collapse: collapse; /* Merge borders neatly */
+    border: 1px solid #ddd; /* Optional: Add borders for styling */
 }
 
-th, td {
-    padding: 8px 18px !important; /* Optional: Add padding for readability */
+.table th, .table td {
+    padding: 8px 18px; /* Consistent padding for readability */
+    white-space: nowrap; /* Prevent wrapping of text */
+    overflow: hidden; /* Hide text that overflows the cell */
+    text-overflow: ellipsis; /* Show ellipsis for truncated text */
+    vertical-align: middle; /* Vertically align text to the middle */
+}
+
+/* Fixed column widths using percentages */
+.col-id {
+    width: 100px; /* Fixed column width */
+}
+
+.col-name {
+    width: 200px; /* Fixed column width */
+}
+
+.col-description {
+    width: 250px; /* Fixed column width */
+}
+
+.col-status {
+    width: 130px; /* Fixed column width */
+}
+
+.col-actions {
+    width: 500px; /* Fixed column width */
 }
 
 
+.card-header {
+    width: 100%; /* Ensure header takes the full width of the parent */
+    padding: 0.75rem 1.25rem; /* Same padding as the default Bootstrap card header */
+    box-sizing: border-box; /* Ensure padding does not affect width */
+}
 
 .clear-btn {
     min-width: 110px; /* Adjust the width as needed */
+    height: 35px;
+    margin-top: 2px;
 }
 
 
@@ -144,7 +176,7 @@ th, td {
     background-color: #0E2160;
     color: white;
     border: none;
-    padding: 15px; /* Increase padding for a larger button */
+    padding: 14px; /* Increase padding for a larger button */
     cursor: pointer;
     font-size: 1.2rem; /* Increase icon size */
     border-radius: 8px; /* Optional: round the corners */
@@ -250,16 +282,32 @@ th, td {
 
 
 /* INPUT BOX */
-
+label {
+    display: block !important;
+}
 input, select, .select2-selection--single {
     border-radius: 5px !important;
     border: 1px solid black !important;
+    height: 35px !important;
+    margin-top: 3px;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
 }
 input:focus, select:focus, .select2-selection--single:focus {
     border-color: #0E2160;
     box-shadow: 0 0 2px rgba(0, 123, 255, 0.5);
 }
 
+#availableAssets, #userAssets {
+    height: 40vh !important;
+}
+
+.button-search {
+    height: 35.5px;
+    margin-top: 2.5px;
+    border-radius: 5px !important;
+    border: 1px solid black !important;
+}
 
 
 /* LOGIN BUTTON */
@@ -278,6 +326,39 @@ input:focus, select:focus, .select2-selection--single:focus {
     background-color: #323b58;
 }
 
+@media (max-width: 480px) {
+    .dashboard-welcome {
+        position: fixed;
+        background-color: #0E2160;
+        color: white;
+        padding: 10px;
+        margin-bottom: 20px;
+        margin-left: 0; /* Remove space between sidebar and banner */
+        margin-right: 0;
+        width: calc(100% - 200px); /* Ensure it spans the entire width of the content area */
+        z-index: 1050;
+    }
+    .dashboard-welcome h1 {
+        margin: 0;
+        font-weight: bold;
+        font-size: 12px;
+    }
+    /* Sidebar toggle button */
+    #sidebarToggle {
+        position: fixed;
+        top: 0px; /* Position closer to the top */
+        left: 250px; /* Align with expanded sidebar */
+        z-index: 1000;
+        background-color: #0E2160;
+        color: white;
+        border: none;
+        padding: 10.7px; /* Increase padding for a larger button */
+        cursor: pointer;
+        border-radius: 0px;
+        font-size: 8px; /* Increase icon size */
+        transition: left 0.3s ease, top 0.3s ease; /* Smooth transition when toggling */
+    }
+}
 
 @media (max-width: 768px) {
     .dashboard-welcome {
@@ -297,20 +378,20 @@ input:focus, select:focus, .select2-selection--single:focus {
         font-size: 20px;
     }
     /* Sidebar toggle button */
-#sidebarToggle {
-    position: fixed;
-    top: 0px; /* Position closer to the top */
-    left: 250px; /* Align with expanded sidebar */
-    z-index: 1000;
-    background-color: #0E2160;
-    color: white;
-    border: none;
-    padding: 10.7px; /* Increase padding for a larger button */
-    cursor: pointer;
-    border-radius: 0px;
-    font-size: 15px; /* Increase icon size */
-    transition: left 0.3s ease, top 0.3s ease; /* Smooth transition when toggling */
-}
+    #sidebarToggle {
+        position: fixed;
+        top: 0px; /* Position closer to the top */
+        left: 250px; /* Align with expanded sidebar */
+        z-index: 1000;
+        background-color: #0E2160;
+        color: white;
+        border: none;
+        padding: 10.7px; /* Increase padding for a larger button */
+        cursor: pointer;
+        border-radius: 0px;
+        font-size: 15px; /* Increase icon size */
+        transition: left 0.3s ease, top 0.3s ease; /* Smooth transition when toggling */
+    }
 }
 
 @media (max-width: 1024px) {
@@ -331,20 +412,20 @@ input:focus, select:focus, .select2-selection--single:focus {
         font-size: 20px;
     }
     /* Sidebar toggle button */
-#sidebarToggle {
-    position: fixed;
-    top: 0px; /* Position closer to the top */
-    left: 250px; /* Align with expanded sidebar */
-    z-index: 1000;
-    background-color: #0E2160;
-    color: white;
-    border: none;
-    padding: 10.7px; /* Increase padding for a larger button */
-    cursor: pointer;
-    border-radius: 0px;
-    font-size: 15px; /* Increase icon size */
-    transition: left 0.3s ease, top 0.3s ease; /* Smooth transition when toggling */
-}
+    #sidebarToggle {
+        position: fixed;
+        top: 0px; /* Position closer to the top */
+        left: 250px; /* Align with expanded sidebar */
+        z-index: 1000;
+        background-color: #0E2160;
+        color: white;
+        border: none;
+        padding: 10.7px; /* Increase padding for a larger button */
+        cursor: pointer;
+        border-radius: 0px;
+        font-size: 15px; /* Increase icon size */
+        transition: left 0.3s ease, top 0.3s ease; /* Smooth transition when toggling */
+    }
 }
 
 

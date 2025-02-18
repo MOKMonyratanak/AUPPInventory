@@ -13,16 +13,11 @@ return new class extends Migration
     {
         Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
-            $table->integer('checked_out_by'); // The user who performed the action
+            $table->integer('admin_id'); // The user who performed the action
             $table->integer('user_id')->nullable(); // The user affected by the action
-            $table->string('action'); // Action description (e.g., "assigned", "returned")
+            $table->string('action'); // Action description (e.g., "issued", "returned")
             $table->string('asset_tag')->nullable(); // The asset involved
-            $table->string('purpose')->nullable(); // The purpose of assignment
             $table->timestamps();
-    
-            // Add foreign keys
-            $table->foreign('checked_out_by')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
     

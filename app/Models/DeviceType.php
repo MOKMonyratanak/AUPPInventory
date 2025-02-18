@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class DeviceType extends Model
 {
     use HasFactory;
-
-    // Define the table name if it's different from the plural of the model name (optional)
     protected $table = 'device_types';
     protected $fillable = [
         'name',

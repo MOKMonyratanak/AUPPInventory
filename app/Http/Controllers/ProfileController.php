@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateProfileRequest;
+use App\Models\Company;
+use App\Models\Position;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display the user's profile form.
-     */
     public function show()
     {
         $user = Auth::user();
@@ -20,64 +20,52 @@ class ProfileController extends Controller
      public function edit()
     {
         $user = Auth::user();
-        return view('profile.edit', compact('user'));
+        $companies = Company::all();
+        $positions = Position::all();
+        return view('profile.edit', compact('user', 'companies', 'positions'));
     }
 
-    /**
-     * Update the user's profile.
-     */
-
-    public function update(Request $request)
+    public function update(UpdateProfileRequest $request)
     {
         $user = Auth::user();
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'position' => 'required|string|max:255',
-            'contact_number' => 'required|string|max:255',
-            'password' => 'nullable|string|min:8|confirmed',
-        ]);
-
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->position = $request->position;
-        $user->contact_number = $request->contact_number;
-
-        // Only update role and company_name if the user is not a manager
-        if ($user->role !== 'manager') {
+        
+        // Fill other fields except password
+        $data = $request->validated();
+        unset($data['password']); // Remove password to prevent it from being set to null
+    
+        $user->fill($data);
+    
+        // Only update role if the user is an admin
+        if ($user->role === 'admin') {
             $user->role = $request->role;
-            $user->company_name = $request->company_name;
         }
-
+    
+        // Only update password if provided
         if ($request->filled('password')) {
             $user->password = Hash::make($request->password);
         }
-
+    
         $user->save();
-
-        return redirect()->route('profile.edit')->with('success', 'Profile updated successfully.');
+    
+        return redirect()->route('profile.show')->with('success', 'Profile updated successfully.');
     }
+    
 
+    // public function destroy(Request $request)
+    // {
+    //     $request->validateWithBag('userDeletion', [
+    //         'password' => ['required', 'current_password'],
+    //     ]);
 
-    /**
-     * Delete the user's account.
-     */
-    public function destroy(Request $request)
-    {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
-        ]);
+    //     $user = $request->user();
 
-        $user = $request->user();
+    //     Auth::logout();
 
-        Auth::logout();
+    //     $user->delete();
 
-        $user->delete();
+    //     $request->session()->invalidate();
+    //     $request->session()->regenerateToken();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return redirect('/');
-    }
+    //     return redirect('/');
+    // }
 }

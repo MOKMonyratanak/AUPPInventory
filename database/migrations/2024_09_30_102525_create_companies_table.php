@@ -17,6 +17,13 @@ return new class extends Migration
             $table->string('description')->nullable(); // Description of the company (nullable)
             $table->timestamps(); // Adds created_at and updated_at columns
         });
+
+        // Insert into the table
+        DB::table('companies')->insert([
+            'name' => 'AUPP University',
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
     }
 
     /**

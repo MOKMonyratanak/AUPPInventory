@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>{{ config('app.name', 'Issuing Asset System (IAS)') }}</title>
 
     <!-- Fonts and Styles -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -23,12 +23,14 @@
     <!-- Include Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- Vite Scripts (app.css and app.js) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
 </head>
 <body>
-    <div class="container-fluid">
+    <div class="container-fluid mb-3">
         <div class="row">
             <!-- Sidebar -->
             <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar">
@@ -45,11 +47,13 @@
             
                 <div class="position-sticky">
                     <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="{{ route('dashboard') }}">
-                                <i class="fas fa-tachometer-alt"></i> <span class="menu-label">Dashboard</span>
-                            </a>
-                        </li>
+                        @if (auth()->user()->role === 'admin')
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('dashboard') }}">
+                                    <i class="fas fa-tachometer-alt"></i> <span class="menu-label">Dashboard</span>
+                                </a>
+                            </li>
+                        @endif
                         <li class="nav-item">
                             <a class="nav-link text-white" href="{{ route('profile.show') }}">
                                 <i class="fas fa-user"></i> <span class="menu-label">Profile</span>
@@ -73,21 +77,34 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="settingsDropdown">
                                 <li>
-                                    <a class="dropdown-item" href="{{ route('companies.index') }}">
-                                        <i class="fas fa-building"></i> <span class="menu-label ms-2">Companies</span>
+                                    <a class="dropdown-item" href="{{ route('brands.index') }}">
+                                        <i class="fas fa-tags"></i> <span class="menu-label ms-2">Brands</span>
                                     </a>
                                 </li>
+                                @if (auth()->user()->role === 'admin')
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('companies.index') }}">
+                                            <i class="fas fa-building"></i> <span class="menu-label ms-2">Companies</span>
+                                        </a>
+                                    </li>
+                                @endif
                                 <li>
                                     <a class="dropdown-item" href="{{ route('device_types.index') }}">
                                         <i class="fas fa-desktop"></i> <span class="menu-label ms-2">Device Types</span>
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="{{ route('brands.index') }}">
-                                        <i class="fas fa-tags"></i> <span class="menu-label ms-2">Brands</span>
+                                    <a class="dropdown-item" href="{{ route('positions.index') }}">
+                                        <i class="fas fa-briefcase"></i> <span class="menu-label ms-2">Positions</span>
                                     </a>
                                 </li>
                             </ul>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{{ route('about') }}">
+                                <i class="fas fa-info-circle"></i> <span class="menu-label">About</span>
+                            </a>
                         </li>
             
                         <!-- Logout Button -->
@@ -109,12 +126,36 @@
                 <!-- Welcome Message -->
                 <div class="dashboard-welcome">
                     <h1 class="h2 text-white text-center">
-                        Inventory Management System
+                        Issuing Asset System (IAS)
                     </h1>
                 </div>
 
                 <!-- Page-specific content -->
                 <div class="px-4 bodycontent">
+
+                    <!-- Display Error/Success Messages -->
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    @if (session('error'))
+                        <div class="alert alert-danger">
+                            {{ session('error') }}
+                        </div>
+                    @endif
+
+                    @if (session('success'))
+                        <div class="alert alert-success">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+                    <!-- Page Content -->
                     @yield('content')
                 </div>
             </div>
@@ -124,28 +165,14 @@
     <!-- Then Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Finally, Select2 JS -->
+    <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <!-- Any page-specific scripts -->
     @yield('scripts')
 
-    <!-- Sidebar toggle script -->
     <script>
-$(document).ready(function() {
-    $('#sidebarToggle').on('click', function() {
-        $('#sidebar').toggleClass('collapsed');
-        $('#content-wrapper').toggleClass('collapsed');
-
-        // Dynamically adjust the position of the toggle button
-        if ($('#sidebar').hasClass('collapsed')) {
-            $('#sidebarToggle').css('left', '63px'); // Align with collapsed sidebar
-        } else {
-            $('#sidebarToggle').css('left', '250px'); // Align with expanded sidebar
-        }
-    });
-});
-
+        window.assetRoutes = {};
     </script>
     
 </body>

@@ -5,17 +5,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class ActivityLog extends Model
 {
-    protected $fillable = ['checked_out_by', 'user_id', 'action', 'asset_tag', 'purpose'];
+    protected $fillable = ['admin_id', 'user_id', 'action', 'asset_tag'];
 
-    // Relationship to the user who performed the action
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'checked_out_by');
-    }
+    // public function user()
+    // {
+    //     return $this->belongsTo(User::class, 'admin_id');
+    // }
 
     public function performedBy()
     {
-        return $this->belongsTo(User::class, 'checked_out_by');
+        return $this->belongsTo(User::class, 'admin_id');
     }
 
     public function affectedUser()

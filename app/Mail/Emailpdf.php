@@ -15,8 +15,9 @@ class Emailpdf extends Mailable
     public $msg;
     public $subject;
     public $attachData;
-
     public $user;
+    public $ccEmails;
+
 
     /**
      * Create a new message instance.
@@ -27,6 +28,7 @@ class Emailpdf extends Mailable
         $this->subject = $subject;
         $this->attachData = $attachData;
         $this->user = $user;
+        $this->ccEmails = 'itsupadmin@aupp.edu.kh';
     }
 
     /**
@@ -36,6 +38,7 @@ class Emailpdf extends Mailable
     {
         return new Envelope(
             subject: $this->subject,
+            cc: $this->ccEmails
         );
     }
 
