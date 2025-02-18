@@ -77,7 +77,4 @@ This project uses the following open-source libraries and frameworks:
 - [jQuery](https://jquery.com/): A fast, small, and feature-rich JavaScript library.
 - [Select2](https://select2.org/): A jQuery-based replacement for select boxes.
 
-### Special Thanks
-
-- To my supervisor for providing invaluable guidance and support throughout the development of this project.
-- The Laravel community for their continuous support and updates.
+Special thanks to the Laravel community for their continuous support and updates.
