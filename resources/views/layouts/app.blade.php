@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'Issuing Asset System (IAS)') }}</title>
+    <link rel="icon" href="{{ asset('logo.ico') }}">
 
     <!-- Fonts and Styles -->
     <link rel="preconnect" href="https://fonts.bunny.net">
