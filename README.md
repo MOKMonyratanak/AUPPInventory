@@ -66,6 +66,7 @@ Password: 00000000
 
 ## Known Issues
 - Webpage reload with each click.
+- Unable to use with phone.
 
 ## Acknowledgements
 
