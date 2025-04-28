@@ -12,61 +12,91 @@ class CompanyController extends Controller
 {
     public function index()
     {
-        if (auth()->user()->role !== 'admin') {
-            return redirect()->route('users.index')->with('error', 'Unauthorized access.');
+        try {
+            if (auth()->user()->role !== 'admin') {
+                return redirect()->route('users.index')->with('error', 'Unauthorized access.');
+            }
+    
+            $companies = Company::all();
+            return view('companies.index', compact('companies'));
         }
-
-        $companies = Company::all();
-        return view('companies.index', compact('companies'));
+        catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function create()
     {
-        if (auth()->user()->role !== 'admin') {
-            return redirect()->route('users.index')->with('error', 'Unauthorized access.');
+        try {
+            if (auth()->user()->role !== 'admin') {
+                return redirect()->route('users.index')->with('error', 'Unauthorized access.');
+            }
+    
+            return view('companies.create');
         }
-
-        return view('companies.create');
+        catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function store(StoreCompanyRequest $request)
     {
-        Company::create($request->validated());
-        return redirect()->route('companies.index')->with('success', 'Company created successfully.');
+        try {
+            Company::create($request->validated());
+            return redirect()->route('companies.index')->with('success', 'Company created successfully.');
+        }
+        catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function show(Company $company)
     {
-        if (auth()->user()->role !== 'admin') {
-            return redirect()->route('users.index')->with('error', 'Unauthorized access.');
+        try {
+            if (auth()->user()->role !== 'admin') {
+                return redirect()->route('users.index')->with('error', 'Unauthorized access.');
+            }
+    
+            return view('companies.show', compact('company'));
         }
-
-        return view('companies.show', compact('company'));
+        catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function edit(Company $company)
     {
-        if (auth()->user()->role !== 'admin') {
-            return redirect()->route('users.index')->with('error', 'Unauthorized access.');
+        try {
+            if (auth()->user()->role !== 'admin') {
+                return redirect()->route('users.index')->with('error', 'Unauthorized access.');
+            }
+    
+            return view('companies.edit', compact('company'));
         }
-
-        return view('companies.edit', compact('company'));
+        catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function update(UpdateCompanyRequest $request, Company $company)
     {
-        $company->update($request->validated());
-        return redirect()->route('companies.index')->with('success', 'Company updated successfully.');
+        try {
+            $company->update($request->validated());
+            return redirect()->route('companies.index')->with('success', 'Company updated successfully.');
+        }
+        catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage()); 
+        }
     }
 
     public function destroy(Company $company)
     {
-        // Check if the authenticated user is an admin
-        if (auth()->user()->role !== 'admin') {
-            return redirect()->route('companies.index')->with('error', 'Unauthorized access. Only admins can delete companies.');
-        }
-    
         try {
+            // Check if the authenticated user is an admin
+            if (auth()->user()->role !== 'admin') {
+                return redirect()->route('companies.index')->with('error', 'Unauthorized access. Only admins can delete companies.');
+            }
+            
             $company->delete();
             return redirect()->route('companies.index')->with('success', 'Company deleted successfully.');
         } catch (QueryException $e) {

@@ -56,7 +56,7 @@ npm run build
 
 8. Login with the following default admin account:
 ```
-Email: admin@gmail.com
+Email: admin@example.com
 Password: 00000000
 ```
 

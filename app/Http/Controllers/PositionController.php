@@ -12,36 +12,59 @@ class PositionController extends Controller
 {
     public function index()
     {
-        $positions = Position::all();
-        return view('positions.index', compact('positions'));
+        try {
+            $positions = Position::all();
+            return view('positions.index', compact('positions'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function create()
     {
-        return view('positions.create');
+        try {
+            return view('positions.create');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function store(StorePositionRequest $request)
     {
-
-        Position::create($request->validated());
-        return redirect()->route('positions.index')->with('success', 'Position created successfully.');
+        try {
+            Position::create($request->validated());
+            return redirect()->route('positions.index')->with('success', 'Position created successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function show(Position $position)
     {
-        return view('positions.show', compact('position'));
+        try{
+            return view('positions.show', compact('position'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function edit(Position $position)
     {
-        return view('positions.edit', compact('position'));
+        try {
+            return view('positions.edit', compact('position'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function update(UpdatePositionRequest $request, Position $position)
     {
-        $position->update($request->validated());
-        return redirect()->route('positions.index')->with('success', 'Position updated successfully.');
+        try {
+            $position->update($request->validated());
+            return redirect()->route('positions.index')->with('success', 'Position updated successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function destroy(Position $position)

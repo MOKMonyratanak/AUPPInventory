@@ -2,6 +2,28 @@
 
 @section('content')
 <div id="dashboard-container" class="container">
+    <!-- Filter Section -->
+    @if(auth()->user()->role === 'admin')
+    <form method="GET" action="{{ route('dashboard') }}" class="mb-4">
+        <div class="row">
+            <div class="col-md-4">
+                <label for="company_id" class="form-label">Filter by Company</label>
+                <select name="company_id" id="company_id" class="form-control">
+                    <option value="">All Companies</option>
+                    @foreach($companies as $company)
+                        <option value="{{ $company->id }}" {{ request('company_id') == $company->id ? 'selected' : '' }}>
+                            {{ $company->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </div>
+        </div>
+    </form>
+    @endif
+
     <!-- Top Section: Brand Pie Chart on the Left, KPIs on the Right -->
     <div class="row">
         <!-- Left: Brand Distribution Pie Chart (Spans 3 Rows) -->

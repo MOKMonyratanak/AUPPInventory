@@ -18,11 +18,11 @@ return new class extends Migration
             $table->string('model')->nullable();
             $table->string('serial_no')->nullable();
             $table->unsignedInteger('company_id');
-            $table->string('condition');
-            $table->string('status');
+            $table->enum('condition', ['new', 'moderate', 'poor', 'defective', 'for repair', 'disposal', 'missing', 'stolen']);
+            $table->enum('status', ['available', 'issued']); 
             $table->integer('user_id')->nullable();
             $table->integer('checked_out_by')->nullable();
-            $table->string('purpose')->nullable();
+            $table->enum('purpose', ['daily_work', 'event'])->nullable();
             $table->string('note')->nullable();
             $table->timestamps();
 

@@ -17,11 +17,11 @@ return new class extends Migration
             $table->integer('id')->change();
 
             // Add new fields
-            $table->string('role')->after('name'); 
+            $table->enum('role', ['user', 'manager', 'admin'])->after('name'); 
             $table->unsignedInteger('company_id')->after('role'); 
             $table->unsignedInteger('position_id')->after('company_id'); 
             $table->string('contact_number')->after('position_id'); 
-            $table->string('status')->after('contact_number'); 
+            $table->enum('status', ['employed', 'resigned'])->after('contact_number'); 
 
             // Make 'password' column nullable
             $table->string('password')->nullable()->change();
@@ -35,7 +35,7 @@ return new class extends Migration
         DB::table('users')->insert([
             'id' => '1',
             'name' => 'Administrator', // Name of the user
-            'email' => 'admin@gmail.com', // Email of the user
+            'email' => 'admin@example.com', // Email of the user
             'password' => Hash::make('00000000'), // Hashed password
             'role' => 'admin', // Role
             'company_id' => 1, // Optional: Assign company ID if applicable

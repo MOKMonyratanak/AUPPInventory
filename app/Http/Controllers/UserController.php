@@ -22,46 +22,51 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::with('company');
+        try {
+            $query = User::with('company');
     
-        // Restrict results if the logged-in user is a manager
-        if (Auth::user()->role !== 'admin') {
-            $query->where('company_id', Auth::user()->company_id);
+            // Restrict results if the logged-in user is a manager
+            if (Auth::user()->role !== 'admin') {
+                $query->where('company_id', Auth::user()->company_id);
+            }
+        
+            // Validate the search input
+            $validated = $request->validate([
+                'search' => ['nullable', 'string', 'max:255', 
+                    'not_regex:/<\s*script.*?>.*?<\s*\/\s*script\s*>/i'], // Disallow script tags
+            ]);
+        
+            // Apply the search filter if input is valid
+            if ($request->filled('search')) {
+                $search = htmlspecialchars($validated['search']); // Sanitize input
+                $query->where(function ($q) use ($search) {
+                    $q->where('id', 'like', "%{$search}%")
+                        ->orWhere('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('role', 'like', "%{$search}%")
+                        ->orWhere('status', 'like', "%{$search}%")
+                        ->orWhere('contact_number', 'like', "%{$search}%")
+                        ->orWhereHas('company', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('position', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        });
+                });
+            }
+        
+            // Get the result
+            $users = $query->paginate(20);
+            return view('users.index', compact('users'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
-    
-        // Validate the search input
-        $validated = $request->validate([
-            'search' => ['nullable', 'string', 'max:255', 
-                'not_regex:/<\s*script.*?>.*?<\s*\/\s*script\s*>/i'], // Disallow script tags
-        ]);
-    
-        // Apply the search filter if input is valid
-        if ($request->filled('search')) {
-            $search = htmlspecialchars($validated['search']); // Sanitize input
-            $query->where(function ($q) use ($search) {
-                $q->where('id', 'like', "%{$search}%")
-                    ->orWhere('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('role', 'like', "%{$search}%")
-                    ->orWhere('status', 'like', "%{$search}%")
-                    ->orWhere('contact_number', 'like', "%{$search}%")
-                    ->orWhereHas('company', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
-                    })
-                    ->orWhereHas('position', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
-                    });
-            });
-        }
-    
-        // Get the result
-        $users = $query->paginate(20);
-        return view('users.index', compact('users'));
     }
     
     public function create()
     {
-        // Check if the logged-in user is a manager
+        try {
+                    // Check if the logged-in user is a manager
         if (Auth::user()->role !== 'admin') {
             // Restrict to the manager's company only
             $companies = Company::where('id', Auth::user()->company_id)->get();
@@ -71,82 +76,100 @@ class UserController extends Controller
         }
         $positions = Position::all();
         return view('users.create', compact('companies','positions'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
     
     public function store(StoreUserRequest $request)
     {
-        $user = Auth::user();
+        try {
+            $user = Auth::user();
     
-        $newUser = User::create([
-            'id' => $request->id, // Explicitly assign 'id'
-            ...$request->validated(), // Merge all validated fields
-            'password' => $request->role !== 'user' ? Hash::make($request->password) : null, // Ensure hashed password
-        ]);
-    
-        ActivityLog::create([
-            'admin_id' => auth()->id(),
-            'user_id' => $newUser->id, // Use newly created user's ID
-            'action' => 'create user',
-            'asset_tag' => null, // Not applicable for users
-        ]);
-    
-        return redirect()->route('users.index')->with('success', 'User created successfully.');
+            $newUser = User::create([
+                'id' => $request->id, // Explicitly assign 'id'
+                ...$request->validated(), // Merge all validated fields
+                'password' => $request->role !== 'user' ? Hash::make($request->password) : null, // Ensure hashed password
+            ]);
+        
+            ActivityLog::create([
+                'admin_id' => auth()->id(),
+                'user_id' => $newUser->id, // Use newly created user's ID
+                'action' => 'create user',
+                'asset_tag' => null, // Not applicable for users
+            ]);
+        
+            return redirect()->route('users.index')->with('success', 'User created successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
      
 
     public function show(Request $request, User $user)
     {
-        // Restrict access if the logged-in user is a manager and the user does not belong to their company
-        if (Auth::user()->role !== 'admin' && $user->company_id !== Auth::user()->company_id) {
-            abort(403, 'Unauthorized action.');
+        try {
+            // Restrict access if the logged-in user is a manager and the user does not belong to their company
+            if (Auth::user()->role !== 'admin' && $user->company_id !== Auth::user()->company_id) {
+                abort(403, 'Unauthorized action.');
+            }
+        
+            return view('users.show', compact('user'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
-    
-        return view('users.show', compact('user'));
     }    
     
     public function edit($id)
     {
-        $user = User::findOrFail($id);
-        $companies = Company::all();
-        $positions = Position::all();
-
-        // Restrict managers from editing admins or other managers
-        if (auth()->user()->role !== 'admin' && ($user->role === 'admin' || $user->role === 'manager')) {
-            abort(403, 'Unauthorized action.');
+        try {
+            $user = User::findOrFail($id);
+            $companies = Company::all();
+            $positions = Position::all();
+    
+            // Restrict managers from editing admins or other managers
+            if (auth()->user()->role !== 'admin' && ($user->role === 'admin' || $user->role === 'manager')) {
+                abort(403, 'Unauthorized action.');
+            }
+    
+            return view('users.edit', compact('user', 'companies','positions'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
-
-        return view('users.edit', compact('user', 'companies','positions'));
     }
 
     public function update(UpdateUserRequest $request, User $user)
     {
-        $userData = $request->validated();
+        try {
+            $userData = $request->validated();
     
-        // Remove password from the validated data if not provided
-        if (!$request->filled('password')) {
-            unset($userData['password']);
-        } else {
-            // Hash the new password before updating
-            $userData['password'] = Hash::make($request->password);
+            // Remove password from the validated data if not provided
+            if (!$request->filled('password')) {
+                unset($userData['password']);
+            } else {
+                // Hash the new password before updating
+                $userData['password'] = Hash::make($request->password);
+            }
+        
+            $user->update($userData);
+        
+            ActivityLog::create([
+                'admin_id' => auth()->id(),
+                'user_id' => $user->id, // Log the affected user
+                'action' => 'update user',
+                'asset_tag' => null, // Not applicable for users
+            ]);
+        
+            return redirect()->route('users.index')->with('success', 'User updated successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
-    
-        $user->update($userData);
-    
-        ActivityLog::create([
-            'admin_id' => auth()->id(),
-            'user_id' => $user->id, // Log the affected user
-            'action' => 'update user',
-            'asset_tag' => null, // Not applicable for users
-        ]);
-    
-        return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }
     
-    
-
     public function destroy(User $user)
     {
-        // Check if the authenticated user is an admin
+        try {
+                    // Check if the authenticated user is an admin
         if (auth()->user()->role !== 'admin') {
             return redirect()->route('users.index')->with('error', 'Unauthorized access. Only admins can delete device users.');
         }
@@ -170,25 +193,31 @@ class UserController extends Controller
             'action' => 'delete user',
             'asset_tag' => null, // Not applicable for users
         ]);
-
-
-    
+        
         return redirect()->route('users.index')->with('success', 'User deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function history(User $user)
     {
-        // Fetch audit logs for the specific user
-        $history = ActivityLog::where('user_id', $user->id)
+        try {
+            // Fetch audit logs for the specific user
+            $history = ActivityLog::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('users.history', compact('user', 'history'));
+            return view('users.history', compact('user', 'history'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
     
     public function assignAssets(Request $request, User $user)
     {
-        // Ensure the manager can only manage users in their own company
+        try {
+                    // Ensure the manager can only manage users in their own company
         if (Auth::user()->role !== 'admin' && $user->company_id !== Auth::user()->company_id) {
             abort(403, 'Unauthorized action.');
         }
@@ -270,46 +299,55 @@ class UserController extends Controller
         });
     
         return back()->with('success', 'Assets updated successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage()); 
+        }
     }
 
     public function issueAssetPage(Request $request, User $user)
     {
-        $purpose = $request->query('purpose'); // Retrieve the selected purpose from query parameters
+        try {
+            $purpose = $request->query('purpose'); // Retrieve the selected purpose from query parameters
     
-        // Validate the purpose parameter
-        if (!$purpose || !in_array($purpose, ['event', 'daily_work'])) {
-            return redirect()->route('users.show', $user->id)
-                ->with('error', 'Invalid purpose selected.');
+            // Validate the purpose parameter
+            if (!$purpose || !in_array($purpose, ['event', 'daily_work'])) {
+                return redirect()->route('users.show', $user->id)
+                    ->with('error', 'Invalid purpose selected.');
+            }
+        
+            // Fetch available assets
+            $availableAssetsQuery = Asset::where('user_id', null)
+                ->where('status', 'available') // Ensure only available assets are fetched
+                ->whereIn('condition', ['new', 'moderate']); // Filter by specific conditions
+        
+            // Restrict managers to their own company's assets
+            if (Auth::user()->role !== 'admin') {
+                $availableAssetsQuery->where('company_id', Auth::user()->company_id);
+            }
+        
+            $availableAssets = $availableAssetsQuery->get();
+        
+            // Fetch the user's assigned assets filtered by the selected purpose
+            $userAssetsQuery = Asset::where('user_id', $user->id)
+                ->where('purpose', $purpose); // Filter by the selected purpose
+        
+            // Optionally restrict user assets by company if needed
+            if (Auth::user()->role !== 'admin') {
+                $userAssetsQuery->where('company_id', Auth::user()->company_id);
+            }
+        
+            $userAssets = $userAssetsQuery->get();
+        
+            return view('users.issue_assets', compact('user', 'availableAssets', 'userAssets', 'purpose'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
-    
-        // Fetch available assets
-        $availableAssetsQuery = Asset::where('user_id', null)
-            ->where('status', 'available'); // Ensure only available assets are fetched
-    
-        // Restrict managers to their own company's assets
-        if (Auth::user()->role !== 'admin') {
-            $availableAssetsQuery->where('company_id', Auth::user()->company_id);
-        }
-    
-        $availableAssets = $availableAssetsQuery->get();
-    
-        // Fetch the user's assigned assets filtered by the selected purpose
-        $userAssetsQuery = Asset::where('user_id', $user->id)
-            ->where('purpose', $purpose); // Filter by the selected purpose
-    
-        // Optionally restrict user assets by company if needed
-        if (Auth::user()->role !== 'admin') {
-            $userAssetsQuery->where('company_id', Auth::user()->company_id);
-        }
-    
-        $userAssets = $userAssetsQuery->get();
-    
-        return view('users.issue_assets', compact('user', 'availableAssets', 'userAssets', 'purpose'));
     }
     
     public function returnAsset(Request $request, User $user)
     {
-        // Ensure the manager can only manage users in their own company
+        try {
+                    // Ensure the manager can only manage users in their own company
         if (Auth::user()->role !== 'admin' && $user->company_id !== Auth::user()->company_id) {
             abort(403, 'Unauthorized action.');
         }
@@ -348,37 +386,45 @@ class UserController extends Controller
         });
     
         return back()->with('success', 'Asset returned successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function print(User $user, Request $request)
     {
-        $purpose = $request->input('purpose');
+        try {
+            $purpose = $request->input('purpose');
     
-        // Restrict manager access to assets of users in their company
-        if (Auth::user()->role !== 'admin' && $user->company_id !== Auth::user()->company_id) {
-            abort(403, 'Unauthorized action.');
+            // Restrict manager access to assets of users in their company
+            if (Auth::user()->role !== 'admin' && $user->company_id !== Auth::user()->company_id) {
+                abort(403, 'Unauthorized action.');
+            }
+        
+            // Fetch only assets with the specified purpose
+            $userAssets = $user->assets()
+                // ->where('company_id', Auth::user()->company_id)
+                ->where('purpose', $purpose) // Filter by purpose
+                ->get();
+        
+            // Add authenticated user and date for agreement
+            $loggedInUser = Auth::user();
+            $todayDate = Carbon::now()->format('d-M-Y');
+        
+            // Determine which view to load based on the purpose
+            $view = ($purpose === 'event') ? 'users.print-event-assets' : 'users.print-assets';
+        
+            // Pass necessary data to the view
+            return view($view, compact('user', 'userAssets', 'loggedInUser', 'todayDate', 'purpose'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
-    
-        // Fetch only assets with the specified purpose
-        $userAssets = $user->assets()
-            // ->where('company_id', Auth::user()->company_id)
-            ->where('purpose', $purpose) // Filter by purpose
-            ->get();
-    
-        // Add authenticated user and date for agreement
-        $loggedInUser = Auth::user();
-        $todayDate = Carbon::now()->format('d-M-Y');
-    
-        // Determine which view to load based on the purpose
-        $view = ($purpose === 'event') ? 'users.print-event-assets' : 'users.print-assets';
-    
-        // Pass necessary data to the view
-        return view($view, compact('user', 'userAssets', 'loggedInUser', 'todayDate', 'purpose'));
     }
 
     public function checkIssuedAssets(User $user)
     {
-        // Check if the user has any issued assets
+        try {
+                    // Check if the user has any issued assets
         $issuedAssets = Asset::where('user_id', $user->id)->where('status', 'issued')->count();
 
         // Return JSON response indicating if there are issued assets
@@ -390,11 +436,15 @@ class UserController extends Controller
         }
 
         return response()->json(['hasIssuedAssets' => false]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error: ' . $e->getMessage()], 500);
+        }
     }
 
     public function resign(User $user)
     {
-        // Check if the user has any issued assets
+        try {
+                    // Check if the user has any issued assets
         $issuedAssets = Asset::where('user_id', $user->id)->where('status', 'issued')->count();
 
         if ($issuedAssets > 0) {
@@ -419,38 +469,45 @@ class UserController extends Controller
 
         // If user is already resigned, show an appropriate error message
         return redirect()->route('users.index')->with('error', 'The user is already resigned.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function emailPdf(User $user, Request $request)
     {
-        $purpose = $request->input('purpose');
+        try {
+            $purpose = $request->input('purpose');
     
-        // Restrict if manager tries to email assets of a user not in their company
-        if (Auth::user()->role !== 'admin' && $user->company_id !== Auth::user()->company_id) {
-            abort(403, 'Unauthorized action.');
+            // Restrict if manager tries to email assets of a user not in their company
+            if (Auth::user()->role !== 'admin' && $user->company_id !== Auth::user()->company_id) {
+                abort(403, 'Unauthorized action.');
+            }
+        
+            // Fetch user assets filtered by purpose
+            $userAssets = $user->assets()
+                ->where('purpose', $purpose)
+                ->get();
+        
+            // Add authenticated user and date
+            $loggedInUser = Auth::user();
+            $todayDate = now()->format('d-M-Y');
+        
+            // Generate PDF using the appropriate view
+            $view = ($purpose === 'event') ? 'users.pdf-event-assets' : 'users.pdf-assets';
+            $pdf = Pdf::loadView($view, compact('user', 'userAssets', 'loggedInUser', 'todayDate'));
+        
+            // Prepare email details
+            $to = $user->email;
+            $subject = "Asset Issuance Details";
+            $msg = "Greetings, \n\n Kindly see the attached file for the information of the assets issued to you. \n\n Thank you, \n IT Support Office";
+        
+            // Send email with attachment
+            Mail::to($to)->send(new Emailpdf($msg, $subject, $pdf->output(), $user));
+            // return $pdf->download('assets.pdf');  //For testing
+            return redirect()->back()->with('success', 'Email sent successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
-    
-        // Fetch user assets filtered by purpose
-        $userAssets = $user->assets()
-            ->where('purpose', $purpose)
-            ->get();
-    
-        // Add authenticated user and date
-        $loggedInUser = Auth::user();
-        $todayDate = now()->format('d-M-Y');
-    
-        // Generate PDF using the appropriate view
-        $view = ($purpose === 'event') ? 'users.pdf-event-assets' : 'users.pdf-assets';
-        $pdf = Pdf::loadView($view, compact('user', 'userAssets', 'loggedInUser', 'todayDate'));
-    
-        // Prepare email details
-        $to = $user->email;
-        $subject = "Asset Issuance Details";
-        $msg = "Greetings, \n\n Kindly see the attached file for the information of the assets issued to you. \n\n Thank you, \n IT Support Office";
-    
-        // Send email with attachment
-        Mail::to($to)->send(new Emailpdf($msg, $subject, $pdf->output(), $user));
-        // return $pdf->download('assets.pdf');  //For testing
-        return redirect()->back()->with('success', 'Email sent successfully!');
     }
 }

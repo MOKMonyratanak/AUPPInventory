@@ -31,7 +31,7 @@ class StoreAssetRequest extends FormRequest
                     }
                 }
             ],
-            'condition' => 'required|string|in:new,moderate,poor,defective,for repair',
+            'condition' => 'required|string|in:new,moderate,poor,defective,for repair,disposal,missing,stolen',
             'status' => 'required|string|in:available,issued',
             'user_id' => 'nullable|integer|exists:users,id',
             'checked_out_by' => 'nullable|integer|exists:users,id',

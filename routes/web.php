@@ -11,7 +11,7 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\PositionController;
-
+use App\Http\Controllers\ReportController;
 
 Route::get('/', function () {
     return view('/auth/login');
@@ -60,6 +60,8 @@ Route::middleware('auth')->group(function () {
 
 
     Route::get('/about', [AboutController::class, 'index'])->name('about');
+
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 });
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])

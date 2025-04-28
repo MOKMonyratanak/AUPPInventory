@@ -71,12 +71,15 @@
             <label for="condition">
                 <i class="fas fa-clipboard-check"></i> Condition
             </label>
-            <select name="condition" class="form-control">
+            <select name="condition" class="form-control" required>
                 <option value="new" {{ old('condition', $asset['condition'] ?? '') == 'new' ? 'selected' : '' }}>New</option>
                 <option value="moderate" {{ old('condition', $asset['condition'] ?? '') == 'moderate' ? 'selected' : '' }}>Moderate</option>
                 <option value="poor" {{ old('condition', $asset['condition'] ?? '') == 'poor' ? 'selected' : '' }}>Poor</option>
                 <option value="defective" {{ old('condition', $asset['condition'] ?? '') == 'defective' ? 'selected' : '' }}>Defective</option>
                 <option value="for repair" {{ old('condition', $asset['condition'] ?? '') == 'for repair' ? 'selected' : '' }}>For Repair</option>
+                <option value="disposal" {{ old('condition', $asset['condition'] ?? '') == 'disposal' ? 'selected' : '' }}>Disposal</option>
+                <option value="missing" {{ old('condition', $asset['condition'] ?? '') == 'missing' ? 'selected' : '' }}>Missing</option>
+                <option value="stolen" {{ old('condition', $asset['condition'] ?? '') == 'stolen' ? 'selected' : '' }}>Stolen</option>
             </select>
         </div>
 

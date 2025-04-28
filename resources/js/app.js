@@ -246,6 +246,27 @@ function initIssueAssetsPage() {
             width: '100%'
         });
 
+
+
+
+
+
+            // Ensure only one asset can be selected at a time
+    $('#searchableAssets').on('select2:select', function (e) {
+        const selectedAsset = e.params.data.id;
+
+        // Clear the available assets list
+        $('#availableAssets').find('option').prop('selected', false);
+
+        // Select the chosen asset in the available assets list
+        $('#availableAssets').find(`option[value="${selectedAsset}"]`).prop('selected', true);
+    });
+
+
+
+
+
+    
         // Listen for changes in the searchable dropdown
         searchableAssets.on('change', function () {
             const selectedAsset = $(this).val();

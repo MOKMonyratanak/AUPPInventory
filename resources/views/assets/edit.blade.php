@@ -78,6 +78,9 @@
                 <option value="poor" {{ old('condition', $asset->condition) == 'poor' ? 'selected' : '' }}>Poor</option>
                 <option value="defective" {{ old('condition', $asset->condition) == 'defective' ? 'selected' : '' }}>Defective</option>
                 <option value="for repair" {{ old('condition', $asset->condition) == 'for repair' ? 'selected' : '' }}>For Repair</option>
+                <option value="disposal" {{ old('condition', $asset->condition) == 'disposal' ? 'selected' : '' }}>Disposal</option>
+                <option value="missing" {{ old('condition', $asset->condition) == 'missing' ? 'selected' : '' }}>Missing</option>
+                <option value="stolen" {{ old('condition', $asset->condition) == 'stolen' ? 'selected' : '' }}>Stolen</option>
             </select>
         </div>
 

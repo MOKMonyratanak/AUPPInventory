@@ -29,7 +29,7 @@
                 </ul>
             </div>
 
-            <!-- Plugins -->
+            <!-- Programming Language -->
             <div class="mb-3">
                 <strong>Programming Language Used:</strong>
                 <ul>
@@ -39,6 +39,16 @@
                         @else
                         <li>{{ $programmingLanguage }}</li>
                         @endif
+                    @endforeach
+                </ul>
+            </div>
+
+            <!-- Dependencies -->
+            <div class="mb-3">
+                <strong>Dependencies:</strong>
+                <ul>
+                    @foreach ($dependencies as $dependency => $version)
+                        <li>{{ $dependency }} - Version {{ $version }}</li>
                     @endforeach
                 </ul>
             </div>

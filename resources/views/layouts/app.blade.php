@@ -48,13 +48,11 @@
             
                 <div class="position-sticky">
                     <ul class="nav flex-column">
-                        @if (auth()->user()->role === 'admin')
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="{{ route('dashboard') }}">
-                                    <i class="fas fa-tachometer-alt"></i> <span class="menu-label">Dashboard</span>
-                                </a>
-                            </li>
-                        @endif
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{{ route('dashboard') }}">
+                                <i class="fas fa-tachometer-alt"></i> <span class="menu-label">Dashboard</span>
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link text-white" href="{{ route('profile.show') }}">
                                 <i class="fas fa-user"></i> <span class="menu-label">Profile</span>
@@ -102,6 +100,11 @@
                             </ul>
                         </li>
 
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{{ route('reports.index') }}">
+                                <i class="fas fa-chart-bar"></i> <span class="menu-label">Reports</span>
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link text-white" href="{{ route('about') }}">
                                 <i class="fas fa-info-circle"></i> <span class="menu-label">About</span>

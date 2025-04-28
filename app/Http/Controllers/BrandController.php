@@ -12,45 +12,75 @@ class BrandController extends Controller
 {
     public function index()
     {
-        $brands = Brand::all();
-        return view('brands.index', compact('brands'));
+        try {
+            $brands = Brand::all();
+            return view('brands.index', compact('brands'));
+        }
+        catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function create()
     {
-        return view('brands.create');
+        try {
+            return view('brands.create');
+        }
+        catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function store(StoreBrandRequest $request)
     {
-        Brand::create($request->validated());
-        return redirect()->route('brands.index')->with('success', 'Brand created successfully.');
+        try {
+            Brand::create($request->validated());
+            return redirect()->route('brands.index')->with('success', 'Brand created successfully.');
+        }
+        catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function show(Brand $brand)
     {
-        return view('brands.show', compact('brand'));
+        try {
+            return view('brands.show', compact('brand'));
+        }
+        catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function edit(Brand $brand)
     {
-        return view('brands.edit', compact('brand'));
+        try {
+            return view('brands.edit', compact('brand'));
+        }
+        catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function update(UpdateBrandRequest $request, Brand $brand)
     {
-        $brand->update($request->validated());
-        return redirect()->route('brands.index')->with('success', 'Brand updated successfully.');
+        try {
+            $brand->update($request->validated());
+            return redirect()->route('brands.index')->with('success', 'Brand updated successfully.');
+        }
+        catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     public function destroy(Brand $brand)
     {
-        // Check if the authenticated user is an admin
-        if (auth()->user()->role !== 'admin') {
-            return redirect()->route('brands.index')->with('error', 'Unauthorized access. Only admins can delete brands.');
-        }
-    
         try {
+            // Check if the authenticated user is an admin
+            if (auth()->user()->role !== 'admin') {
+                return redirect()->route('brands.index')->with('error', 'Unauthorized access. Only admins can delete brands.');
+            }
+
             $brand->delete();
             return redirect()->route('brands.index')->with('success', 'Brand deleted successfully.');
         } catch (QueryException $e) {
@@ -61,5 +91,4 @@ class BrandController extends Controller
             return redirect()->route('brands.index')->with('error', 'An error occurred while deleting the brand.');
         }
     }
-    
 }
