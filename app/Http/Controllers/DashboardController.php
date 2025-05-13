@@ -34,8 +34,17 @@ class DashboardController extends Controller
                 $issuedAssetsQuery->where('company_id', $companyId);
                 $deviceDataQuery->where('company_id', $companyId);
                 $brandDataQuery->where('company_id', $companyId);
-                $recentActivitiesQuery->whereHas('performedBy', function ($query) use ($companyId) {
-                    $query->where('company_id', $companyId);
+                // Get all asset tags for the selected company
+                $assetTags = Asset::where('company_id', $companyId)->pluck('asset_tag')->toArray();
+
+                $recentActivitiesQuery->where(function ($query) use ($companyId, $assetTags) {
+                    $query->whereHas('affectedUser', function ($q) use ($companyId) {
+                        $q->where('company_id', $companyId);
+                    })
+                    ->orWhere(function ($q) use ($assetTags) {
+                        $q->whereNull('user_id')
+                        ->whereIn('asset_tag', $assetTags);
+                    });
                 });
             }
     
