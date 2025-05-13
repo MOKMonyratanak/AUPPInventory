@@ -24,6 +24,7 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
+        $user = Auth::user();
 
         // Check if the user has the 'user' role
         if (Auth::user()->role == 'user' or Auth::user()->status == 'resigned') {
@@ -41,8 +42,20 @@ class AuthenticatedSessionController extends Controller
                 ->withErrors(['email' => 'You are not allowed to log in.']);
         }
 
+        // Check if the user is already logged in elsewhere
+        if ($user->current_session_id && $user->current_session_id !== session()->getId()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect()->route('login')
+                ->withErrors(['email' => 'This account is currently logged in on another device.']);
+        }
         // Regenerate the session to prevent session fixation attacks
         $request->session()->regenerate();
+
+        // Save the current session ID to the user
+        $user->current_session_id = session()->getId();
+        $user->save();
 
         // Redirect the user to their intended destination (or dashboard if no intended destination)
         return redirect()->intended(route('users.index', absolute: false));
@@ -53,10 +66,14 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $user = Auth::user();
+        if ($user) {
+            $user->current_session_id = null;
+            $user->save();
+        }
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/');

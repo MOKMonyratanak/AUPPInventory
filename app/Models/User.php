@@ -22,6 +22,7 @@ class User extends Authenticatable
         'status',
         'password',
         'remember_token',
+        'current_session_id',
     ];
 
     public $incrementing = false;
