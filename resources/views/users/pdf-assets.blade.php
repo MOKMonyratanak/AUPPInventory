@@ -104,17 +104,23 @@
     @else
         <table class="table-borderless">
             <tr>
-                <th class="center">Asset Tag</th>
-                <th class="center">Device Type</th>
-                <th class="center">Brand</th>
-                <th class="center">Model</th>
+                <th class="left">Asset Tag</th>
+                <th class="left">Device Type</th>
+                <th class="left">Check-out Date</th>
+                <th class="left">Check-In Date</th>
             </tr>
             @foreach($userAssets as $key => $asset)
                 <tr>
-                    <td>{{ $key + 1 }}. <span class="underline">&nbsp;&nbsp;{{ $asset->asset_tag }}&nbsp;&nbsp;</span></td>
-                    <td> &nbsp;&nbsp;{{ $asset->deviceType->name }}&nbsp;&nbsp;</span></td>
-                    <td> &nbsp;&nbsp;{{ $asset->brand->name }}&nbsp;&nbsp;</&nbsp;&nbsp;></td>
-                    <td> &nbsp;&nbsp;{{ $asset->model ? $asset->model : "N/A" }}&nbsp;&nbsp;</td>
+                    <td>{{ $key + 1 }}. {{ $asset->asset_tag }}&nbsp;&nbsp;</td>
+                    <td>{{ $asset->deviceType->name }}&nbsp;&nbsp;</&nbsp;&nbsp;></td>
+                    <td>
+                        @if($asset->latestIssueLog)
+                            {{ \Carbon\Carbon::parse($asset->latestIssueLog->created_at)->format('d-M-Y') }}
+                        @else
+                            ______________
+                        @endif
+                    </td>
+                    <td>______________</td>
                 </tr>
             @endforeach
         </table>
@@ -157,8 +163,8 @@
                 <td>Name: <span class="underline">&nbsp;&nbsp;{{ $user->name }}&nbsp;&nbsp;</span></td>
             </tr>
             <tr>
-                <td>Date: <span class="underline">&nbsp;&nbsp;{{ $todayDate }}&nbsp;&nbsp;</span></td>
-                <td>Date: <span class="underline">&nbsp;&nbsp;{{ $todayDate }}&nbsp;&nbsp;</span></td>
+                <td>Date: ______________________</td>
+                <td>Date: ______________________</td>
             </tr>
             <tr>
                 <td>Signature: ________________________</td>
