@@ -36,7 +36,7 @@ class StoreAssetRequest extends FormRequest
             'user_id' => 'nullable|integer|exists:users,id',
             'checked_out_by' => 'nullable|integer|exists:users,id',
             'purpose' => 'nullable|string|in:daily_work,event',
-            'note' => 'nullable|string|max:255'
+            'note' => 'nullable|string|max:65535'
         ];
     }
 }
